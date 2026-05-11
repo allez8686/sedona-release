@@ -354,6 +354,7 @@ body {
 .music-types {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .music-type-btn {
   padding: 8px 16px;
@@ -557,7 +558,10 @@ input[type="range"] {
     <div class="music-row">
       <label>音乐类型</label>
       <div class="music-types">
-        <button class="music-type-btn selected" data-type="nature">自然音</button>
+        <button class="music-type-btn selected" data-type="nature">自然雨声</button>
+        <button class="music-type-btn" data-type="stream">溪流声</button>
+        <button class="music-type-btn" data-type="piano">钢琴曲</button>
+        <button class="music-type-btn" data-type="chimes">风铃</button>
         <button class="music-type-btn" data-type="music">轻音乐</button>
       </div>
     </div>
@@ -1042,6 +1046,7 @@ function fmtTime(d) {
 let audioCtx = null;
 let masterGain = null;
 let noiseNode = null;
+let noiseNodes = [];
 let musicInterval = null;
 let musicOn = false;
 let musicType = 'nature';
@@ -1074,12 +1079,17 @@ function startMusic() {
   stopMusic();
   initAudio();
   if (musicType === 'nature') startNatureSound();
+  else if (musicType === 'stream') startStreamSound();
+  else if (musicType === 'piano') startPiano();
+  else if (musicType === 'chimes') startChimes();
   else startLightMusic();
   musicOn = true;
 }
 
 function stopMusic() {
   if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
+  noiseNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  noiseNodes = [];
   if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
 }
 
@@ -1138,6 +1148,168 @@ function startLightMusic() {
 
   playNext();
   musicInterval = setInterval(playNext, 3500);
+}
+
+function startStreamSound() {
+  // Babbling brook - multiple filtered noise sources
+  const filterSettings = [
+    { freq: 400, q: 0.5, gain: 0.06 },
+    { freq: 800, q: 1.0, gain: 0.04 },
+    { freq: 1200, q: 2.0, gain: 0.03 },
+    { freq: 200, q: 0.3, gain: 0.08 },
+  ];
+
+  filterSettings.forEach(s => {
+    const bufSize = audioCtx.sampleRate * 2;
+    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) d[i] = Math.random() * 2 - 1;
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = s.freq;
+    bp.Q.value = s.q;
+
+    const gain = audioCtx.createGain();
+    gain.gain.value = s.gain;
+
+    src.connect(bp);
+    bp.connect(gain);
+    gain.connect(masterGain);
+    src.start();
+    noiseNodes.push(src);
+  });
+
+  // Occasional "splash" sounds
+  function addSplash() {
+    if (!musicOn || musicType !== 'stream') return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = 200 + Math.random() * 400;
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(0.03, audioCtx.currentTime + 0.05);
+    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.6);
+    osc.onended = () => { osc.disconnect(); g.disconnect(); };
+  }
+  musicInterval = setInterval(addSplash, 4000 + Math.random() * 3000);
+  addSplash();
+}
+
+function startPiano() {
+  // Gentle piano-like arpeggios in C major
+  const chords = [
+    [261.63, 329.63, 392.00, 523.25], // C major
+    [293.66, 369.99, 440.00, 587.33], // Dm
+    [349.23, 440.00, 523.25, 659.25], // F major
+    [392.00, 493.88, 587.33, 783.99], // G major
+    [329.63, 392.00, 493.88, 659.25], // Am
+  ];
+
+  let chordIdx = 0;
+  function playArpeggio() {
+    if (!musicOn || musicType !== 'piano') return;
+    const chord = chords[chordIdx % chords.length];
+    chordIdx++;
+
+    chord.forEach((freq, i) => {
+      const t = audioCtx.currentTime + i * 1.2;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+
+      // Piano-like envelope: quick attack, moderate sustain, slow decay
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.08, t + 0.02);
+      g.gain.linearRampToValueAtTime(0.05, t + 0.3);
+      g.gain.linearRampToValueAtTime(0, t + 3.5);
+
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 3.6);
+      osc.onended = () => { osc.disconnect(); g.disconnect(); };
+    });
+
+    // Add a subtle bass note
+    const bassOsc = audioCtx.createOscillator();
+    const bassGain = audioCtx.createGain();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.value = chord[0] / 2;
+    bassGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    bassGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.05);
+    bassGain.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 1);
+    bassGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 4);
+    bassOsc.connect(bassGain);
+    bassGain.connect(masterGain);
+    bassOsc.start();
+    bassOsc.stop(audioCtx.currentTime + 4.1);
+    bassOsc.onended = () => { bassOsc.disconnect(); bassGain.disconnect(); };
+  }
+
+  playArpeggio();
+  musicInterval = setInterval(playArpeggio, 5000);
+}
+
+function startChimes() {
+  // Wind chimes - random high bell-like tones
+  const chimeFreqs = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66];
+
+  function strikeChime() {
+    if (!musicOn || musicType !== 'chimes') return;
+    const freq = chimeFreqs[Math.floor(Math.random() * chimeFreqs.length)];
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    // Add slight detune for realism
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    osc.detune.value = (Math.random() - 0.5) * 20;
+
+    // Bell-like envelope: instant attack, long decay
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0.07, audioCtx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
+
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 4.5);
+    osc.onended = () => { osc.disconnect(); g.disconnect(); };
+
+    // Sometimes strike a second chime slightly after
+    if (Math.random() > 0.6) {
+      setTimeout(() => {
+        if (!musicOn || musicType !== 'chimes') return;
+        const f2 = chimeFreqs[Math.floor(Math.random() * chimeFreqs.length)];
+        const o2 = audioCtx.createOscillator();
+        const g2 = audioCtx.createGain();
+        o2.type = 'sine';
+        o2.frequency.value = f2;
+        o2.detune.value = (Math.random() - 0.5) * 20;
+        g2.gain.setValueAtTime(0, audioCtx.currentTime);
+        g2.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.01);
+        g2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
+        o2.connect(g2);
+        g2.connect(masterGain);
+        o2.start();
+        o2.stop(audioCtx.currentTime + 3.5);
+        o2.onended = () => { o2.disconnect(); g2.disconnect(); };
+      }, 200 + Math.random() * 800);
+    }
+  }
+
+  strikeChime();
+  musicInterval = setInterval(strikeChime, 2500 + Math.random() * 3000);
 }
 
 function updateMusicUI() {
