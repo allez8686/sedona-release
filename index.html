@@ -428,6 +428,44 @@ input[type="range"] {
   background: var(--bg);
 }
 
+/* ── Result Modal ── */
+.result-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.result-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #e8ded0;
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  text-align: left;
+  font-size: 15px;
+  color: var(--text);
+}
+.result-option:hover {
+  border-color: var(--accent);
+  background: #fef7ef;
+}
+.result-option .result-icon { font-size: 20px; flex-shrink: 0; }
+.result-option span:nth-child(2) { flex: 1; font-weight: 500; }
+.result-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+.result-tag.full     { background: #e8f0e0; color: #6a9b5e; }
+.result-tag.partial  { background: #fdf0db; color: #c4956a; }
+.result-tag.continue { background: #f0e8e0; color: #a08a78; }
+
 /* ── Responsive ── */
 @media (max-width: 400px) {
   .app-container { max-width: 100%; }
@@ -543,6 +581,36 @@ input[type="range"] {
   </div>
 </div>
 
+<!-- ── Result Modal ── -->
+<div class="overlay" id="resultOverlay">
+  <div class="modal">
+    <h3>释放成果记录</h3>
+    <p style="font-size:14px;color:var(--text-light);text-align:center;margin-bottom:16px;">记录一下这次释放的效果吧</p>
+    <div class="result-options">
+      <button class="result-option" data-result="full">
+        <span class="result-icon">😊</span>
+        <span>完全释放了</span>
+        <span style="font-size:12px;color:var(--text-light);">感觉很轻松自在</span>
+      </button>
+      <button class="result-option" data-result="partial">
+        <span class="result-icon">🌤</span>
+        <span>部分释放</span>
+        <span style="font-size:12px;color:var(--text-light);">感觉好了一些</span>
+      </button>
+      <button class="result-option" data-result="continue">
+        <span class="result-icon">🌱</span>
+        <span>还需继续练习</span>
+        <span style="font-size:12px;color:var(--text-light);">还在感受和觉察中</span>
+      </button>
+      <button class="result-option" data-result="skip">
+        <span class="result-icon">→</span>
+        <span>跳过记录</span>
+        <span style="font-size:12px;color:var(--text-light);">不记录，直接返回</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════
 //  Data & State
@@ -623,21 +691,7 @@ const wantsSteps = [
     btnB: { text: '不能', cls: 'btn-outline', action: 'accept' }
   },
   {
-    title: '第四步 · 愿意放手吗',
-    text: '',
-    hint: '不愿意也没关系，看见它就好。',
-    dual: true,
-    btnA: { text: '愿意', cls: 'btn-green', action: 'next' },
-    btnB: { text: '不愿意', cls: 'btn-outline', action: 'accept' }
-  },
-  {
-    title: '第五步 · 什么时候',
-    text: '',
-    hint: '现在，就是最好的时刻。',
-    btn: { text: '放手', cls: 'btn-primary', action: 'next' }
-  },
-  {
-    title: '第六步 · 感受变化',
+    title: '第四步 · 感受变化',
     text: '',
     hint: '每一次放手，都是一次练习。',
     dual: true,
@@ -650,15 +704,17 @@ function fillWantsSteps(wantName) {
   wantsSteps[0].text = `回想一个让你产生「${wantName}」的情境。\n\n感受这份想要背后的驱动力——它在你身体的哪个位置？\n它是什么感觉？\n\n闭上眼睛，让自己回到那个情境中。`;
   wantsSteps[1].text = `允许自己去感受这份「${wantName}」带来的紧张和执着。\n\n不做任何评判，不试图推开它。\n只是观察：这份想要，在你内心是什么样的？`;
   wantsSteps[2].text = `现在，问自己：\n\n「我能放手让这份${wantName}离开吗？」\n\n不需要分析，不需要讲道理。\n只是诚实地回答。`;
-  wantsSteps[3].text = `继续问自己：\n\n「我愿意放手让这份${wantName}离开吗？」\n\n注意——「能」和「愿意」是不同的。\n诚实地看看自己的内心。`;
-  wantsSteps[4].text = `最后一个问题：\n\n「我什么时候放手让这份${wantName}离开？」\n\n答案永远是——「现在」。\n\n准备好了，就点击放手。`;
-  wantsSteps[5].text = `深呼吸……\n\n感受放手后的轻松。\n不再被这份${wantName}所驱动的那一刻，\n你是自由的。`;
+  wantsSteps[3].text = `深呼吸……\n\n感受放手后的轻松。\n不再被这份${wantName}所驱动的那一刻，\n你是自由的。`;
 }
 
 // ── State ──
 let currentStep = 0;
 let currentFlow = null; // 'emotion' | 'wants'
 let currentWantName = '';
+
+function getMaxStep() {
+  return currentFlow === 'emotion' ? 5 : 3;
+}
 
 // ═══════════════════════════════════════
 //  View Switching
@@ -738,7 +794,7 @@ function renderWantsStep() {
   const actions = document.getElementById('wantsActions');
   const label = document.getElementById('wantsStepLabel');
 
-  label.textContent = `第 ${currentStep + 1} / 6 步`;
+  label.textContent = `第 ${currentStep + 1} / 4 步`;
 
   let html = `<div class="step-title">${step.title}</div>`;
   html += `<div class="step-text">${step.text.replace(/\n/g, '<br>')}</div>`;
@@ -768,9 +824,9 @@ function renderWantsStep() {
 
 function handleAction(action) {
   if (action === 'next') {
-    if (currentStep < 5) {
+    if (currentStep < getMaxStep()) {
       currentStep++;
-      if (currentStep === 5) saveDiaryEntry();
+      if (currentStep === getMaxStep()) saveDiaryEntry();
       renderCurrentFlow();
     }
   } else if (action === 'accept') {
@@ -779,7 +835,7 @@ function handleAction(action) {
     if (currentFlow === 'emotion') startFlow('emotion');
     else startFlow('wants', currentWantName);
   } else if (action === 'home') {
-    showHome();
+    showResultModal();
   }
 }
 
@@ -801,7 +857,7 @@ function showAcceptMessage() {
     <button class="btn btn-ghost" id="acceptRepeat">再试一次</button>
   `;
   document.getElementById('acceptContinue').onclick = () => {
-    if (currentStep < 5) { currentStep++; renderCurrentFlow(); }
+    if (currentStep < getMaxStep()) { currentStep++; renderCurrentFlow(); }
   };
   document.getElementById('acceptRepeat').onclick = () => {
     renderCurrentFlow();
@@ -828,7 +884,7 @@ function saveDiary(entries) {
   localStorage.setItem(LS_KEYS.diary, JSON.stringify(entries));
 }
 
-function saveDiaryEntry() {
+function saveDiaryEntry(result) {
   const entries = getDiary();
   const now = new Date();
   let typeLabel;
@@ -839,9 +895,32 @@ function saveDiaryEntry() {
     id: Date.now(),
     type: typeLabel,
     date: fmtDate(now),
-    time: fmtTime(now)
+    time: fmtTime(now),
+    result: result || null
   });
   saveDiary(entries);
+}
+
+function showResultModal() {
+  const overlay = document.getElementById('resultOverlay');
+  overlay.classList.add('show');
+
+  // Bind result options
+  overlay.querySelectorAll('.result-option').forEach(opt => {
+    opt.onclick = () => {
+      const result = opt.dataset.result;
+      if (result !== 'skip') {
+        // Update the last diary entry with the result
+        const entries = getDiary();
+        if (entries.length > 0) {
+          entries[0].result = result;
+          saveDiary(entries);
+        }
+      }
+      overlay.classList.remove('show');
+      showHome();
+    };
+  });
 }
 
 function renderDiary() {
@@ -860,10 +939,18 @@ function renderDiary() {
       html += `<div style="font-size:13px;color:var(--text-light);padding:8px 4px 4px;">${e.date}</div>`;
       lastDate = e.date;
     }
+    let resultTag = '';
+    if (e.result === 'full') {
+      resultTag = '<span class="result-tag full">✓ 完全释放</span>';
+    } else if (e.result === 'partial') {
+      resultTag = '<span class="result-tag partial">◐ 部分释放</span>';
+    } else if (e.result === 'continue') {
+      resultTag = '<span class="result-tag continue">○ 还需练习</span>';
+    }
     html += `
       <div class="diary-entry">
         <div class="info">
-          <div class="type">${e.type}</div>
+          <div class="type">${e.type}${resultTag ? '<br>' + resultTag : ''}</div>
           <div class="time">${e.time}</div>
         </div>
         <button class="del-btn" data-id="${e.id}">✕</button>
@@ -1224,6 +1311,13 @@ document.getElementById('reminderOverlay').onclick = function(e) {
     this.classList.remove('show');
     saveReminders();
     startReminderCheck();
+  }
+};
+
+document.getElementById('resultOverlay').onclick = function(e) {
+  if (e.target === this) {
+    this.classList.remove('show');
+    showHome();
   }
 };
 
