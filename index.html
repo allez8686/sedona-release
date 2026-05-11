@@ -163,6 +163,14 @@ body {
   letter-spacing: 0.5px;
 }
 
+.timer {
+  font-size: 13px;
+  color: var(--accent);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
 .flow-card {
   background: var(--card);
   border-radius: var(--radius);
@@ -510,6 +518,7 @@ input[type="range"] {
     <div class="flow-header">
       <button class="back-btn" id="backEmotion">←</button>
       <span class="step-indicator" id="emotionStepLabel"></span>
+      <span class="timer" id="emotionTimer">⏱ 00:00</span>
     </div>
     <div class="flow-card" id="emotionFlowCard"></div>
     <div class="flow-actions" id="emotionActions"></div>
@@ -520,6 +529,7 @@ input[type="range"] {
     <div class="flow-header">
       <button class="back-btn" id="backWants">←</button>
       <span class="step-indicator" id="wantsStepLabel"></span>
+      <span class="timer" id="wantsTimer">⏱ 00:00</span>
     </div>
     <div class="flow-card" id="wantsFlowCard"></div>
     <div class="flow-actions" id="wantsActions"></div>
@@ -716,6 +726,46 @@ function getMaxStep() {
   return currentFlow === 'emotion' ? 5 : 3;
 }
 
+// ── Timer ──
+let timerStart = null;
+let timerInterval = null;
+let elapsedSeconds = 0;
+
+function startTimer() {
+  stopTimer();
+  timerStart = Date.now();
+  elapsedSeconds = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    elapsedSeconds = Math.floor((Date.now() - timerStart) / 1000);
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (timerStart) {
+    elapsedSeconds = Math.floor((Date.now() - timerStart) / 1000);
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(elapsedSeconds / 60);
+  const s = elapsedSeconds % 60;
+  const display = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const emotionTimer = document.getElementById('emotionTimer');
+  const wantsTimer = document.getElementById('wantsTimer');
+  if (emotionTimer) emotionTimer.textContent = display;
+  if (wantsTimer) wantsTimer.textContent = display;
+}
+
+function getDurationStr() {
+  const m = Math.floor(elapsedSeconds / 60);
+  const s = elapsedSeconds % 60;
+  if (m > 0) return `${m} 分 ${s} 秒`;
+  return `${s} 秒`;
+}
+
 // ═══════════════════════════════════════
 //  View Switching
 // ═══════════════════════════════════════
@@ -741,6 +791,7 @@ function startFlow(flowType, wantName) {
   currentFlow = flowType;
   currentStep = 0;
   currentWantName = wantName || '';
+  startTimer();
 
   if (flowType === 'wants') {
     fillWantsSteps(wantName);
@@ -826,7 +877,10 @@ function handleAction(action) {
   if (action === 'next') {
     if (currentStep < getMaxStep()) {
       currentStep++;
-      if (currentStep === getMaxStep()) saveDiaryEntry();
+      if (currentStep === getMaxStep()) {
+        stopTimer();
+        saveDiaryEntry();
+      }
       renderCurrentFlow();
     }
   } else if (action === 'accept') {
@@ -896,6 +950,7 @@ function saveDiaryEntry(result) {
     type: typeLabel,
     date: fmtDate(now),
     time: fmtTime(now),
+    duration: getDurationStr(),
     result: result || null
   });
   saveDiary(entries);
@@ -951,7 +1006,7 @@ function renderDiary() {
       <div class="diary-entry">
         <div class="info">
           <div class="type">${e.type}${resultTag ? '<br>' + resultTag : ''}</div>
-          <div class="time">${e.time}</div>
+          <div class="time">${e.time}${e.duration ? ' · ⏱ ' + e.duration : ''}</div>
         </div>
         <button class="del-btn" data-id="${e.id}">✕</button>
       </div>
