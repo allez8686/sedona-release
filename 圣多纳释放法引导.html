@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圣多纳释放法</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FFF8F0;
+  --card: #FFFAF5;
+  --accent: #C4956A;
+  --green: #A3B899;
+  --text: #5D4E37;
+  --text-light: #9B8E7E;
+  --shadow: 0 2px 16px rgba(139, 119, 90, 0.08);
+  --radius: 16px;
+  --radius-sm: 12px;
+}
+
+body {
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  min-height: 85vh;
+  position: relative;
+}
+
+/* ── Top Bar ── */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 4px;
+  margin-bottom: 8px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--card);
+  color: var(--accent);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, background 0.2s;
+}
+.icon-btn:hover { transform: scale(1.08); background: #fdf3e8; }
+.icon-btn.active { background: var(--accent); color: #fff; }
+
+/* ── Views ── */
+.view {
+  display: none;
+  animation: fadeIn 0.5s ease;
+}
+.view.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Home ── */
+.home-title {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.home-title h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 2px;
+}
+.home-title p {
+  font-size: 15px;
+  color: var(--text-light);
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
+.option-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.option-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.25s, box-shadow 0.25s;
+  border: 1.5px solid transparent;
+}
+.option-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(139, 119, 90, 0.14);
+}
+.option-card.primary { border-color: var(--accent); }
+.option-card.secondary { border-color: var(--green); }
+
+.option-card .icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+.option-card h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.option-card p {
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+/* ── Flow Steps ── */
+.flow-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.back-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--card);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+.back-btn:hover { transform: scale(1.08); }
+
+.step-indicator {
+  font-size: 13px;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+}
+
+.flow-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 40px 28px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+
+.flow-card .step-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+.flow-card .step-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+}
+.flow-card .step-hint {
+  font-size: 13px;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.flow-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: transform 0.2s, opacity 0.2s;
+  font-family: inherit;
+}
+.btn:hover { transform: scale(1.04); }
+.btn:active { transform: scale(0.97); }
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-green  { background: var(--green); color: #fff; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-light);
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+/* ── Wants Select ── */
+.wants-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+.want-option {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+  border: 1.5px solid transparent;
+}
+.want-option:hover { transform: translateY(-2px); border-color: var(--green); }
+.want-option h3 { font-size: 18px; margin-bottom: 4px; }
+.want-option p   { font-size: 13px; color: var(--text-light); }
+
+/* ── Diary ── */
+.diary-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.diary-header h2 { font-size: 20px; letter-spacing: 1px; }
+
+.diary-list { display: flex; flex-direction: column; gap: 10px; }
+.diary-empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 40px 0;
+  font-size: 15px;
+}
+.diary-entry {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+}
+.diary-entry .info .type {
+  font-size: 15px;
+  font-weight: 500;
+}
+.diary-entry .info .time {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+.diary-entry .del-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f9ede3;
+  color: #c9a88c;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+.diary-entry .del-btn:hover { background: #f1d5c0; }
+
+/* ── Modal / Overlay ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(93, 78, 55, 0.3);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+
+.modal {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 12px 40px rgba(93, 78, 55, 0.18);
+  animation: fadeIn 0.3s ease;
+}
+.modal h3 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.modal-close {
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── Music Panel ── */
+.music-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+.music-row label { font-size: 15px; }
+.music-types {
+  display: flex;
+  gap: 8px;
+}
+.music-type-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e0d5c5;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.music-type-btn.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+input[type="range"] {
+  width: 120px;
+  accent-color: var(--accent);
+}
+.toggle-switch {
+  width: 48px; height: 28px;
+  background: #ddd;
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s;
+  border: none;
+}
+.toggle-switch.on { background: var(--accent); }
+.toggle-switch::after {
+  content: '';
+  width: 22px; height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px; left: 3px;
+  transition: left 0.3s;
+}
+.toggle-switch.on::after { left: 23px; }
+
+/* ── Reminder Panel ── */
+.preset-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.preset-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e0d5c5;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.preset-chip.active {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.custom-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.custom-time-row input {
+  width: 60px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1.5px solid #e0d5c5;
+  text-align: center;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--bg);
+}
+
+/* ── Responsive ── */
+@media (max-width: 400px) {
+  .app-container { max-width: 100%; }
+  .flow-card { padding: 28px 20px; }
+  .option-card { padding: 24px 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Top Bar -->
+  <div class="top-bar" id="topBar">
+    <button class="icon-btn" id="btnMusic" title="背景音乐">🎵</button>
+    <button class="icon-btn" id="btnDiary" title="释放日记">📖</button>
+    <button class="icon-btn" id="btnReminder" title="每日提醒">🔔</button>
+  </div>
+
+  <!-- ── Home View ── -->
+  <div class="view active" id="viewHome">
+    <div class="home-title">
+      <h1>圣多纳释放法</h1>
+      <p>放下，让自由发生</p>
+    </div>
+    <div class="option-cards">
+      <div class="option-card primary" id="cardEmotion">
+        <div class="icon">💛</div>
+        <h2>情绪释放</h2>
+        <p>针对具体的情绪进行释放引导</p>
+      </div>
+      <div class="option-card secondary" id="cardWants">
+        <div class="icon">🌿</div>
+        <h2>三大想要释放</h2>
+        <p>释放「想要认同」「想要控制」「想要安全」</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Emotion Flow View ── -->
+  <div class="view" id="viewEmotionFlow">
+    <div class="flow-header">
+      <button class="back-btn" id="backEmotion">←</button>
+      <span class="step-indicator" id="emotionStepLabel"></span>
+    </div>
+    <div class="flow-card" id="emotionFlowCard"></div>
+    <div class="flow-actions" id="emotionActions"></div>
+  </div>
+
+  <!-- ── Wants Flow View ── -->
+  <div class="view" id="viewWantsFlow">
+    <div class="flow-header">
+      <button class="back-btn" id="backWants">←</button>
+      <span class="step-indicator" id="wantsStepLabel"></span>
+    </div>
+    <div class="flow-card" id="wantsFlowCard"></div>
+    <div class="flow-actions" id="wantsActions"></div>
+  </div>
+
+  <!-- ── Diary View ── -->
+  <div class="view" id="viewDiary">
+    <div class="diary-header">
+      <button class="back-btn" id="backDiary">←</button>
+      <h2>释放日记</h2>
+    </div>
+    <div class="diary-list" id="diaryList"></div>
+  </div>
+
+</div>
+
+<!-- ── Music Modal ── -->
+<div class="overlay" id="musicOverlay">
+  <div class="modal">
+    <h3>背景音乐</h3>
+    <div class="music-row">
+      <label>音乐开关</label>
+      <button class="toggle-switch" id="musicToggle"></button>
+    </div>
+    <div class="music-row">
+      <label>音乐类型</label>
+      <div class="music-types">
+        <button class="music-type-btn selected" data-type="nature">自然音</button>
+        <button class="music-type-btn" data-type="music">轻音乐</button>
+      </div>
+    </div>
+    <div class="music-row">
+      <label>音量</label>
+      <input type="range" id="volumeSlider" min="0" max="100" value="40">
+    </div>
+    <button class="modal-close" id="closeMusic">完成</button>
+  </div>
+</div>
+
+<!-- ── Reminder Modal ── -->
+<div class="overlay" id="reminderOverlay">
+  <div class="modal">
+    <h3>每日提醒</h3>
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:12px;text-align:center;">预设时段</p>
+    <div class="preset-row" id="presetChips">
+      <button class="preset-chip" data-time="08:00">☀️ 早晨 8:00</button>
+      <button class="preset-chip" data-time="12:30">🌤 中午 12:30</button>
+      <button class="preset-chip" data-time="21:00">🌙 晚间 21:00</button>
+    </div>
+    <p style="font-size:14px;color:var(--text-light);margin:16px 0 8px;text-align:center;">自定义时间</p>
+    <div class="custom-time-row" style="justify-content:center;">
+      <input type="number" id="customHour" min="0" max="23" placeholder="时" style="width:56px;">
+      <span>:</span>
+      <input type="number" id="customMin" min="0" max="59" placeholder="分" style="width:56px;">
+      <button class="btn btn-outline" id="addCustom" style="padding:6px 14px;font-size:13px;">添加</button>
+    </div>
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;" id="customChips"></div>
+    <button class="btn btn-primary" id="closeReminder" style="width:100%;margin-top:18px;">保存设置</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  Data & State
+// ═══════════════════════════════════════
+const LS_KEYS = {
+  diary: 'sedona_diary',
+  musicOn: 'sedona_music_on',
+  musicType: 'sedona_music_type',
+  volume: 'sedona_volume',
+  reminders: 'sedona_reminders',
+};
+
+// ── Step definitions ──
+const emotionSteps = [
+  {
+    title: '第一步 · 聚焦',
+    text: '找一个安静的地方，让自己放松下来。\n想一个你想处理的情绪或困扰——它可能是焦虑、愤怒、悲伤，或者任何让你不舒服的感觉。\n\n闭上眼睛，在心中找到这个情绪。',
+    hint: '',
+    btn: { text: '我找到了，继续', cls: 'btn-primary', action: 'next' }
+  },
+  {
+    title: '第二步 · 感受',
+    text: '现在，允许自己全然地去感受这个情绪。\n不评判它，不抗拒它，不试图改变它。\n\n只是静静地观察它，和它待在一起。\n它在你身体的哪个位置？它是什么形状、什么温度的？',
+    hint: '你不需要做什么，只需要感受。',
+    btn: { text: '我在感受，继续', cls: 'btn-primary', action: 'next' }
+  },
+  {
+    title: '第三步 · 能放手吗',
+    text: '现在，问自己这个问题：\n\n「我能放手让这个情绪离开吗？」\n\n不需要分析，不需要讲道理。\n只是诚实地回答自己——能，或不能。\n\n没有哪个答案是对的或是错的。',
+    hint: '无论答案是「能」还是「不能」，都没有关系。',
+    dual: true,
+    btnA: { text: '能', cls: 'btn-green', action: 'next' },
+    btnB: { text: '不能', cls: 'btn-outline', action: 'accept' }
+  },
+  {
+    title: '第四步 · 愿意放手吗',
+    text: '继续问自己：\n\n「我愿意放手吗？」\n\n注意——「能」和「愿意」是不同的。\n你可能能做到，但不一定愿意。\n\n诚实地看看自己的内心。',
+    hint: '不愿意也没关系，看见它就好。',
+    dual: true,
+    btnA: { text: '愿意', cls: 'btn-green', action: 'next' },
+    btnB: { text: '不愿意', cls: 'btn-outline', action: 'accept' }
+  },
+  {
+    title: '第五步 · 什么时候',
+    text: '最后一个问题：\n\n「我什么时候放手？」\n\n答案永远是——「现在」。\n\n此刻，就是放手的时刻。\n不需要等到准备好，不需要等到一切都完美。\n\n准备好了，就点击放手。',
+    hint: '现在，就是最好的时刻。',
+    btn: { text: '放手', cls: 'btn-primary', action: 'next' }
+  },
+  {
+    title: '第六步 · 感受变化',
+    text: '深呼吸……\n\n感受此刻身体和内心的变化。\n注意到那份轻松，那份自由。\n\n你放下了，哪怕只是一点点。\n这就是释放的感觉。',
+    hint: '每一次放手，都是一次练习。',
+    dual: true,
+    btnA: { text: '再释放一次', cls: 'btn-primary', action: 'repeat' },
+    btnB: { text: '回到首页', cls: 'btn-ghost', action: 'home' }
+  }
+];
+
+const wantsSteps = [
+  {
+    title: '第一步 · 聚焦',
+    text: '',
+    hint: '',
+    btn: { text: '我准备好了，继续', cls: 'btn-primary', action: 'next' }
+  },
+  {
+    title: '第二步 · 感受',
+    text: '',
+    hint: '你不需要急着改变什么，只是感受。',
+    btn: { text: '我在感受，继续', cls: 'btn-primary', action: 'next' }
+  },
+  {
+    title: '第三步 · 能放手吗',
+    text: '',
+    hint: '无论答案是「能」还是「不能」，都没有关系。',
+    dual: true,
+    btnA: { text: '能', cls: 'btn-green', action: 'next' },
+    btnB: { text: '不能', cls: 'btn-outline', action: 'accept' }
+  },
+  {
+    title: '第四步 · 愿意放手吗',
+    text: '',
+    hint: '不愿意也没关系，看见它就好。',
+    dual: true,
+    btnA: { text: '愿意', cls: 'btn-green', action: 'next' },
+    btnB: { text: '不愿意', cls: 'btn-outline', action: 'accept' }
+  },
+  {
+    title: '第五步 · 什么时候',
+    text: '',
+    hint: '现在，就是最好的时刻。',
+    btn: { text: '放手', cls: 'btn-primary', action: 'next' }
+  },
+  {
+    title: '第六步 · 感受变化',
+    text: '',
+    hint: '每一次放手，都是一次练习。',
+    dual: true,
+    btnA: { text: '再释放一次', cls: 'btn-primary', action: 'repeat' },
+    btnB: { text: '回到首页', cls: 'btn-ghost', action: 'home' }
+  }
+];
+
+function fillWantsSteps(wantName) {
+  wantsSteps[0].text = `回想一个让你产生「${wantName}」的情境。\n\n感受这份想要背后的驱动力——它在你身体的哪个位置？\n它是什么感觉？\n\n闭上眼睛，让自己回到那个情境中。`;
+  wantsSteps[1].text = `允许自己去感受这份「${wantName}」带来的紧张和执着。\n\n不做任何评判，不试图推开它。\n只是观察：这份想要，在你内心是什么样的？`;
+  wantsSteps[2].text = `现在，问自己：\n\n「我能放手让这份${wantName}离开吗？」\n\n不需要分析，不需要讲道理。\n只是诚实地回答。`;
+  wantsSteps[3].text = `继续问自己：\n\n「我愿意放手让这份${wantName}离开吗？」\n\n注意——「能」和「愿意」是不同的。\n诚实地看看自己的内心。`;
+  wantsSteps[4].text = `最后一个问题：\n\n「我什么时候放手让这份${wantName}离开？」\n\n答案永远是——「现在」。\n\n准备好了，就点击放手。`;
+  wantsSteps[5].text = `深呼吸……\n\n感受放手后的轻松。\n不再被这份${wantName}所驱动的那一刻，\n你是自由的。`;
+}
+
+// ── State ──
+let currentStep = 0;
+let currentFlow = null; // 'emotion' | 'wants'
+let currentWantName = '';
+
+// ═══════════════════════════════════════
+//  View Switching
+// ═══════════════════════════════════════
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById(viewId);
+  if (!target) return;
+  target.classList.add('active');
+  // Re-trigger animation
+  target.style.animation = 'none';
+  target.offsetHeight;
+  target.style.animation = 'fadeIn 0.5s ease';
+}
+
+function showHome() {
+  showView('viewHome');
+}
+
+// ═══════════════════════════════════════
+//  Flow Engine
+// ═══════════════════════════════════════
+function startFlow(flowType, wantName) {
+  currentFlow = flowType;
+  currentStep = 0;
+  currentWantName = wantName || '';
+
+  if (flowType === 'wants') {
+    fillWantsSteps(wantName);
+    showView('viewWantsFlow');
+    renderWantsStep();
+  } else {
+    showView('viewEmotionFlow');
+    renderEmotionStep();
+  }
+}
+
+function renderEmotionStep() {
+  const step = emotionSteps[currentStep];
+  const card = document.getElementById('emotionFlowCard');
+  const actions = document.getElementById('emotionActions');
+  const label = document.getElementById('emotionStepLabel');
+
+  label.textContent = `第 ${currentStep + 1} / 6 步`;
+
+  let html = `<div class="step-title">${step.title}</div>`;
+  html += `<div class="step-text">${step.text.replace(/\n/g, '<br>')}</div>`;
+  if (step.hint) html += `<div class="step-hint">${step.hint}</div>`;
+  card.innerHTML = html;
+
+  let btns = '';
+  if (step.dual) {
+    btns += `<button class="btn ${step.btnA.cls}" id="btnA">${step.btnA.text}</button>`;
+    btns += `<button class="btn ${step.btnB.cls}" id="btnB">${step.btnB.text}</button>`;
+  } else {
+    btns += `<button class="btn ${step.btn.cls}" id="btnNext">${step.btn.text}</button>`;
+  }
+  actions.innerHTML = btns;
+
+  // Bind events
+  if (step.dual) {
+    document.getElementById('btnA').onclick = () => handleAction(step.btnA.action);
+    document.getElementById('btnB').onclick = () => handleAction(step.btnB.action);
+  } else {
+    document.getElementById('btnNext').onclick = () => handleAction(step.btn.action);
+  }
+
+  // Re-trigger fade animation
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeIn 0.5s ease';
+}
+
+function renderWantsStep() {
+  const step = wantsSteps[currentStep];
+  const card = document.getElementById('wantsFlowCard');
+  const actions = document.getElementById('wantsActions');
+  const label = document.getElementById('wantsStepLabel');
+
+  label.textContent = `第 ${currentStep + 1} / 6 步`;
+
+  let html = `<div class="step-title">${step.title}</div>`;
+  html += `<div class="step-text">${step.text.replace(/\n/g, '<br>')}</div>`;
+  if (step.hint) html += `<div class="step-hint">${step.hint}</div>`;
+  card.innerHTML = html;
+
+  let btns = '';
+  if (step.dual) {
+    btns += `<button class="btn ${step.btnA.cls}" id="btnA">${step.btnA.text}</button>`;
+    btns += `<button class="btn ${step.btnB.cls}" id="btnB">${step.btnB.text}</button>`;
+  } else {
+    btns += `<button class="btn ${step.btn.cls}" id="btnNext">${step.btn.text}</button>`;
+  }
+  actions.innerHTML = btns;
+
+  if (step.dual) {
+    document.getElementById('btnA').onclick = () => handleAction(step.btnA.action);
+    document.getElementById('btnB').onclick = () => handleAction(step.btnB.action);
+  } else {
+    document.getElementById('btnNext').onclick = () => handleAction(step.btn.action);
+  }
+
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeIn 0.5s ease';
+}
+
+function handleAction(action) {
+  if (action === 'next') {
+    if (currentStep < 5) {
+      currentStep++;
+      if (currentStep === 5) saveDiaryEntry();
+      renderCurrentFlow();
+    }
+  } else if (action === 'accept') {
+    showAcceptMessage();
+  } else if (action === 'repeat') {
+    if (currentFlow === 'emotion') startFlow('emotion');
+    else startFlow('wants', currentWantName);
+  } else if (action === 'home') {
+    showHome();
+  }
+}
+
+function showAcceptMessage() {
+  const card = currentFlow === 'emotion'
+    ? document.getElementById('emotionFlowCard')
+    : document.getElementById('wantsFlowCard');
+  const actions = currentFlow === 'emotion'
+    ? document.getElementById('emotionActions')
+    : document.getElementById('wantsActions');
+
+  card.innerHTML = `
+    <div class="step-title">没关系</div>
+    <div class="step-text">没关系，允许自己现在还放不下。<br><br>看见这份不放手，也是一种觉察。<br>你已经做得很好了。<br><br>准备好了再继续。</div>
+    <div class="step-hint">对自己温柔一点。</div>
+  `;
+  actions.innerHTML = `
+    <button class="btn btn-primary" id="acceptContinue">继续下一步</button>
+    <button class="btn btn-ghost" id="acceptRepeat">再试一次</button>
+  `;
+  document.getElementById('acceptContinue').onclick = () => {
+    if (currentStep < 5) { currentStep++; renderCurrentFlow(); }
+  };
+  document.getElementById('acceptRepeat').onclick = () => {
+    renderCurrentFlow();
+  };
+
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeIn 0.5s ease';
+}
+
+function renderCurrentFlow() {
+  if (currentFlow === 'emotion') renderEmotionStep();
+  else renderWantsStep();
+}
+
+// ═══════════════════════════════════════
+//  Diary
+// ═══════════════════════════════════════
+function getDiary() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS.diary)) || []; }
+  catch { return []; }
+}
+function saveDiary(entries) {
+  localStorage.setItem(LS_KEYS.diary, JSON.stringify(entries));
+}
+
+function saveDiaryEntry() {
+  const entries = getDiary();
+  const now = new Date();
+  let typeLabel;
+  if (currentFlow === 'emotion') typeLabel = '💛 情绪释放';
+  else typeLabel = '🌿 ' + currentWantName + '释放';
+
+  entries.unshift({
+    id: Date.now(),
+    type: typeLabel,
+    date: fmtDate(now),
+    time: fmtTime(now)
+  });
+  saveDiary(entries);
+}
+
+function renderDiary() {
+  const list = document.getElementById('diaryList');
+  const entries = getDiary();
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="diary-empty">还没有释放记录<br><br>完成一次释放后会自动出现在这里 ✨</div>';
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+  entries.forEach(e => {
+    if (e.date !== lastDate) {
+      html += `<div style="font-size:13px;color:var(--text-light);padding:8px 4px 4px;">${e.date}</div>`;
+      lastDate = e.date;
+    }
+    html += `
+      <div class="diary-entry">
+        <div class="info">
+          <div class="type">${e.type}</div>
+          <div class="time">${e.time}</div>
+        </div>
+        <button class="del-btn" data-id="${e.id}">✕</button>
+      </div>
+    `;
+  });
+  list.innerHTML = html;
+
+  // Bind delete
+  list.querySelectorAll('.del-btn').forEach(btn => {
+    btn.onclick = function() {
+      const id = parseInt(this.dataset.id);
+      const updated = entries.filter(e => e.id !== id);
+      saveDiary(updated);
+      renderDiary();
+    };
+  });
+}
+
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const weeks = ['日','一','二','三','四','五','六'];
+  return `${y}年${m}月${day}日 星期${weeks[d.getDay()]}`;
+}
+function fmtTime(d) {
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════
+//  Music (Web Audio API)
+// ═══════════════════════════════════════
+let audioCtx = null;
+let masterGain = null;
+let noiseNode = null;
+let musicInterval = null;
+let musicOn = false;
+let musicType = 'nature';
+let volume = 40;
+
+function loadMusicSettings() {
+  musicOn = localStorage.getItem(LS_KEYS.musicOn) === 'true';
+  musicType = localStorage.getItem(LS_KEYS.musicType) || 'nature';
+  volume = parseInt(localStorage.getItem(LS_KEYS.volume)) || 40;
+  updateMusicUI();
+  if (musicOn) startMusic();
+}
+
+function saveMusicSettings() {
+  localStorage.setItem(LS_KEYS.musicOn, musicOn);
+  localStorage.setItem(LS_KEYS.musicType, musicType);
+  localStorage.setItem(LS_KEYS.volume, volume);
+}
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = volume / 100 * 0.5;
+    masterGain.connect(audioCtx.destination);
+  }
+}
+
+function startMusic() {
+  stopMusic();
+  initAudio();
+  if (musicType === 'nature') startNatureSound();
+  else startLightMusic();
+  musicOn = true;
+}
+
+function stopMusic() {
+  if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
+  if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+}
+
+function startNatureSound() {
+  // Filtered white noise for rain-like ambience
+  const bufferSize = 2 * audioCtx.sampleRate;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  noiseNode = audioCtx.createBufferSource();
+  noiseNode.buffer = buffer;
+  noiseNode.loop = true;
+
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.value = 600;
+  bandpass.Q.value = 0.8;
+
+  const lowpass = audioCtx.createBiquadFilter();
+  lowpass.type = 'lowpass';
+  lowpass.frequency.value = 2000;
+
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 0.15;
+
+  noiseNode.connect(bandpass);
+  bandpass.connect(lowpass);
+  lowpass.connect(gainNode);
+  gainNode.connect(masterGain);
+  noiseNode.start();
+}
+
+function startLightMusic() {
+  // Gentle pentatonic ambient pads
+  const pentatonic = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
+  let idx = 0;
+
+  function playNext() {
+    if (!musicOn || musicType !== 'music') return;
+    const freq = pentatonic[Math.floor(Math.random() * pentatonic.length)];
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 1.5);
+    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 4.5);
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 5);
+    osc.onended = () => { osc.disconnect(); g.disconnect(); };
+  }
+
+  playNext();
+  musicInterval = setInterval(playNext, 3500);
+}
+
+function updateMusicUI() {
+  const toggle = document.getElementById('musicToggle');
+  if (musicOn) toggle.classList.add('on');
+  else toggle.classList.remove('on');
+
+  document.querySelectorAll('.music-type-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.type === musicType);
+  });
+  document.getElementById('volumeSlider').value = volume;
+  document.getElementById('btnMusic').classList.toggle('active', musicOn);
+}
+
+// ═══════════════════════════════════════
+//  Reminders
+// ═══════════════════════════════════════
+let reminders = [];
+let reminderCheckInterval = null;
+let lastTriggered = {};
+
+function loadReminders() {
+  try { reminders = JSON.parse(localStorage.getItem(LS_KEYS.reminders)) || []; }
+  catch { reminders = []; }
+  renderReminderUI();
+}
+
+function saveReminders() {
+  localStorage.setItem(LS_KEYS.reminders, JSON.stringify(reminders));
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function startReminderCheck() {
+  if (reminderCheckInterval) clearInterval(reminderCheckInterval);
+  reminderCheckInterval = setInterval(checkReminders, 30000); // every 30s
+  checkReminders(); // immediate first check
+}
+
+function checkReminders() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (reminders.length === 0) return;
+
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  reminders.forEach(r => {
+    if (r === currentTime && lastTriggered[r] !== currentTime) {
+      lastTriggered[r] = currentTime;
+      new Notification('圣多纳释放法', {
+        body: '🌿 是时候停下来，给自己几分钟安静的时间了。',
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">🌿</text></svg>',
+        silent: false
+      });
+    }
+  });
+}
+
+function renderReminderUI() {
+  const presetChips = document.querySelectorAll('#presetChips .preset-chip');
+  presetChips.forEach(chip => {
+    const t = chip.dataset.time;
+    chip.classList.toggle('active', reminders.includes(t));
+  });
+
+  // Custom chips
+  const customContainer = document.getElementById('customChips');
+  const customTimes = reminders.filter(t => !['08:00','12:30','21:00'].includes(t));
+  customContainer.innerHTML = customTimes.map(t => `
+    <span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg);padding:6px 12px;border-radius:20px;font-size:13px;">
+      ${t}
+      <button style="border:none;background:none;cursor:pointer;color:var(--text-light);padding:0 2px;font-size:14px;" data-remove="${t}">✕</button>
+    </span>
+  `).join('');
+
+  // Bind remove
+  customContainer.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.onclick = () => {
+      reminders = reminders.filter(t => t !== btn.dataset.remove);
+      saveReminders();
+      renderReminderUI();
+      startReminderCheck();
+    };
+  });
+}
+
+// ═══════════════════════════════════════
+//  Event Bindings
+// ═══════════════════════════════════════
+
+// Home cards
+document.getElementById('cardEmotion').onclick = () => startFlow('emotion');
+document.getElementById('cardWants').onclick = () => showWantsSelect();
+
+// Wants selection
+function showWantsSelect() {
+  showView('viewWantsFlow');
+  currentFlow = 'wants';
+  const card = document.getElementById('wantsFlowCard');
+  const actions = document.getElementById('wantsActions');
+  const label = document.getElementById('wantsStepLabel');
+  label.textContent = '选择想要类型';
+
+  card.innerHTML = `
+    <div class="step-title">你选择释放哪一个？</div>
+    <div class="wants-grid">
+      <div class="want-option" data-want="想要认同">
+        <h3>🤝 想要认同</h3>
+        <p>希望被喜欢、被认可、被接纳</p>
+      </div>
+      <div class="want-option" data-want="想要控制">
+        <h3>🎯 想要控制</h3>
+        <p>希望事情按照自己的意愿发展</p>
+      </div>
+      <div class="want-option" data-want="想要安全">
+        <h3>🛡 想要安全</h3>
+        <p>希望感到安全、稳定、有保障</p>
+      </div>
+    </div>
+  `;
+  actions.innerHTML = '';
+
+  card.querySelectorAll('.want-option').forEach(opt => {
+    opt.onclick = () => {
+      startFlow('wants', opt.dataset.want);
+    };
+  });
+}
+
+// Back buttons
+document.getElementById('backEmotion').onclick = () => { showHome(); };
+document.getElementById('backWants').onclick = () => {
+  if (currentStep === 0 && !currentWantName) showHome();
+  else showWantsSelect();
+};
+document.getElementById('backDiary').onclick = () => { showHome(); };
+
+// Top bar buttons
+document.getElementById('btnDiary').onclick = () => {
+  showView('viewDiary');
+  renderDiary();
+};
+
+document.getElementById('btnMusic').onclick = () => {
+  document.getElementById('musicOverlay').classList.add('show');
+};
+
+document.getElementById('btnReminder').onclick = () => {
+  requestNotificationPermission();
+  document.getElementById('reminderOverlay').classList.add('show');
+};
+
+// Music modal
+document.getElementById('closeMusic').onclick = () => {
+  document.getElementById('musicOverlay').classList.remove('show');
+  saveMusicSettings();
+};
+
+document.getElementById('musicToggle').onclick = function() {
+  musicOn = !musicOn;
+  if (musicOn) startMusic();
+  else { stopMusic(); musicOn = false; }
+  saveMusicSettings();
+  updateMusicUI();
+};
+
+document.querySelectorAll('.music-type-btn').forEach(btn => {
+  btn.onclick = function() {
+    musicType = this.dataset.type;
+    updateMusicUI();
+    if (musicOn) startMusic();
+    saveMusicSettings();
+  };
+});
+
+document.getElementById('volumeSlider').oninput = function() {
+  volume = parseInt(this.value);
+  if (masterGain) masterGain.gain.value = volume / 100 * 0.5;
+  saveMusicSettings();
+};
+
+// Reminder modal
+document.getElementById('closeReminder').onclick = () => {
+  document.getElementById('reminderOverlay').classList.remove('show');
+  saveReminders();
+  startReminderCheck();
+};
+
+document.querySelectorAll('#presetChips .preset-chip').forEach(chip => {
+  chip.onclick = function() {
+    const t = this.dataset.time;
+    if (reminders.includes(t)) {
+      reminders = reminders.filter(r => r !== t);
+    } else {
+      reminders.push(t);
+    }
+    saveReminders();
+    renderReminderUI();
+  };
+});
+
+document.getElementById('addCustom').onclick = () => {
+  const hRaw = document.getElementById('customHour').value;
+  const mRaw = document.getElementById('customMin').value;
+  if (hRaw === '' || mRaw === '') return;
+  const time = `${String(parseInt(hRaw)).padStart(2,'0')}:${String(parseInt(mRaw)).padStart(2,'0')}`;
+  if (!reminders.includes(time)) {
+    reminders.push(time);
+    saveReminders();
+    renderReminderUI();
+  }
+  document.getElementById('customHour').value = '';
+  document.getElementById('customMin').value = '';
+};
+
+// Close modals on overlay click
+document.getElementById('musicOverlay').onclick = function(e) {
+  if (e.target === this) { this.classList.remove('show'); saveMusicSettings(); }
+};
+document.getElementById('reminderOverlay').onclick = function(e) {
+  if (e.target === this) {
+    this.classList.remove('show');
+    saveReminders();
+    startReminderCheck();
+  }
+};
+
+// ═══════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════
+loadMusicSettings();
+loadReminders();
+startReminderCheck();
+requestNotificationPermission();
+</script>
+</body>
+</html>
