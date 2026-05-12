@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>喝水记录</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAFDFF;
+  --blue: #7EC8E3;
+  --blue-dark: #3A9FC0;
+  --blue-deep: #2C5F7C;
+  --blue-light: #E8F6FA;
+  --green: #5EC497;
+  --white: #FFFFFF;
+  --shadow: 0 2px 16px rgba(44,95,124,0.07);
+  --radius: 20px;
+  --radius-sm: 14px;
+}
+
+body {
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--blue-deep);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding-bottom: 40px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-top: 16px;
+}
+.header .date {
+  font-size: 14px;
+  color: #8CB8CC;
+  margin-bottom: 4px;
+}
+.header .title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--blue-deep);
+  letter-spacing: 0.5px;
+}
+
+/* ── Progress Row ── */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.progress-text {
+  font-size: 15px;
+  color: #6BA4BB;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.progress-text .current { font-size: 32px; font-weight: 700; color: var(--blue-dark); }
+.progress-text .unit { font-size: 14px; color: #8CB8CC; }
+.progress-text .divider { color: #B8D8E8; margin: 0 2px; }
+.progress-text .goal { color: #8CB8CC; }
+
+.goal-check {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: #E8F8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(0);
+  opacity: 0;
+}
+.goal-check.show {
+  transform: scale(1);
+  opacity: 1;
+}
+.goal-check svg { width: 20px; height: 20px; }
+.goal-check svg path { stroke: var(--green); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Cup Area ── */
+.cup-area {
+  position: relative;
+  width: 200px;
+  height: 290px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 8px;
+  overflow: visible;
+}
+
+/* Cup body */
+.cup {
+  position: relative;
+  width: 160px;
+  height: 248px;
+}
+
+/* Glass outline */
+.glass {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(200,230,245,0.18) 30%,
+    rgba(180,220,240,0.22) 100%);
+  border: 3px solid rgba(160,210,230,0.45);
+  border-top: 4px solid rgba(160,210,230,0.5);
+  border-radius: 8px 8px 32px 32px;
+  box-shadow:
+    inset 0 0 30px rgba(255,255,255,0.3),
+    0 4px 24px rgba(44,95,124,0.1),
+    0 0 0 8px rgba(200,230,245,0.12);
+  overflow: hidden;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Glass highlight left */
+.glass::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 28px;
+  bottom: 40px;
+  width: 5px;
+  background: rgba(255,255,255,0.55);
+  border-radius: 3px;
+  z-index: 10;
+  transition: bottom 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Glass highlight right */
+.glass::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50px;
+  bottom: 65px;
+  width: 3px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  z-index: 10;
+  transition: bottom 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Water */
+.water {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg,
+    rgba(110,200,235,0.65) 0%,
+    rgba(60,155,215,0.78) 35%,
+    rgba(30,120,185,0.88) 100%);
+  transition: height 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1;
+  border-radius: 5px 5px 29px 29px;
+}
+
+/* Wave SVG layer */
+.wave-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  z-index: 1;
+  overflow: hidden;
+  transition: bottom 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.wave-container svg {
+  position: absolute;
+  bottom: 0;
+  width: 200%;
+  height: 22px;
+}
+.wave-container svg.wave1 { animation: wave 2.8s linear infinite; }
+.wave-container svg.wave2 { animation: wave 4s linear infinite reverse; opacity: 0.4; bottom: 2px; }
+.wave-container svg.wave3 { animation: wave 3.2s linear infinite; opacity: 0.3; bottom: 4px; }
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Cup rim */
+.cup-rim {
+  position: absolute;
+  top: -6px;
+  left: -7px;
+  right: -7px;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(245,250,255,0.8) 0%, rgba(210,235,248,0.45) 100%);
+  border: 3px solid rgba(160,210,230,0.5);
+  border-radius: 10px 10px 4px 4px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Number inside cup (when empty) */
+.cup-number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 14px;
+  color: #B0D4E4;
+  font-weight: 600;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.cup-number.hidden { opacity: 0; }
+
+/* ── Custom Input Row ── */
+.custom-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--white);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.3s ease;
+}
+.custom-input-row input {
+  flex: 1;
+  border: 2px solid #D4EAF3;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue-deep);
+  text-align: center;
+  background: #FAFDFF;
+  outline: none;
+  -webkit-appearance: none;
+}
+.custom-input-row input:focus { border-color: var(--blue); }
+.custom-input-row .unit { color: #8CB8CC; font-size: 14px; }
+
+/* ── Quick Add Buttons ── */
+.quick-add {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.add-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid #D4EAF3;
+  background: var(--white);
+  color: var(--blue-dark);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  box-shadow: var(--shadow);
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  position: relative;
+}
+.add-btn .plus { font-size: 20px; line-height: 1; font-weight: 600; }
+.add-btn:hover { transform: scale(1.06); border-color: var(--blue); background: #F5FAFD; }
+.add-btn:active { transform: scale(0.92); background: var(--blue-light); transition: all 0.08s; }
+
+/* ── Goal Setting ── */
+.goal-section {
+  width: 100%;
+  background: var(--white);
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.goal-section .goal-label {
+  font-size: 13px;
+  color: #8CB8CC;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.goal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.goal-row input {
+  flex: 1;
+  border: 2px solid #D4EAF3;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue-deep);
+  text-align: center;
+  background: #FAFDFF;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.goal-row input:focus { border-color: var(--blue); }
+.goal-row .unit { color: #8CB8CC; font-size: 14px; font-weight: 500; }
+.goal-save {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.goal-save:hover { background: var(--blue-dark); }
+.goal-save:active { transform: scale(0.95); }
+
+/* ── Weekly Strip ── */
+.week-strip {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+}
+.week-day {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  font-size: 11px;
+  color: #8CB8CC;
+  transition: all 0.2s;
+}
+.week-day.today {
+  background: var(--blue-light);
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+.week-day .day-name { font-weight: 500; }
+.week-day .day-num { font-size: 16px; font-weight: 700; }
+.week-day .day-icon { font-size: 13px; margin-top: 1px; }
+
+/* ── Records ── */
+.records-section {
+  width: 100%;
+}
+.records-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8CB8CC;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.record-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  animation: recordIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s, opacity 0.3s;
+}
+@keyframes recordIn {
+  from { opacity: 0; transform: translateX(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+.record-item .record-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex-shrink: 0;
+}
+.record-item .record-info { flex: 1; }
+.record-item .record-time { font-size: 13px; color: #8CB8CC; }
+.record-item .record-amount { font-size: 17px; font-weight: 700; color: var(--blue-dark); }
+.record-delete {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: #F5F5F5;
+  color: #BBB;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.record-delete:hover { background: #FFE8E8; color: #E88; }
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  padding: 28px 20px 20px;
+  color: #B8D8E8;
+  font-size: 14px;
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 8px; display: block; }
+
+/* ── Celebration ── */
+.celebration {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+.confetti {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  animation: confetti-fall 2.5s ease-out forwards;
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translateY(-100px) rotate(0deg) scale(1); }
+  80% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(0.3); }
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--blue-deep);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 200;
+  cursor: pointer;
+  animation: toast-in 0.35s ease, toast-out 0.3s ease 2.2s forwards;
+  box-shadow: 0 4px 16px rgba(44,95,124,0.25);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ── Ripple on buttons ── */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(126,200,227,0.25);
+  transform: scale(0);
+  animation: ripple 0.5s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes ripple {
+  to { transform: scale(3); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="date" id="dateText"></div>
+    <div class="title">今天喝水了吗</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-row">
+    <div class="progress-text">
+      <span class="current" id="currentMl">0</span><span class="unit">ml</span>
+      <span class="divider">/</span>
+      <span class="goal" id="goalMl">2000ml</span>
+    </div>
+    <div class="goal-check" id="goalCheck">
+      <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    </div>
+  </div>
+
+  <!-- Cup -->
+  <div class="cup-area" id="cupArea">
+    <div class="cup">
+      <div class="cup-rim"></div>
+      <div class="glass">
+        <div class="water" id="water"></div>
+        <div class="wave-container" id="waveContainer">
+          <svg class="wave1" viewBox="0 0 400 22" preserveAspectRatio="none">
+            <path d="M0,11 Q25,2 50,11 T100,11 T150,11 T200,11 T250,11 T300,11 T350,11 T400,11 V22 H0 Z" fill="rgba(130,215,245,0.3)"/>
+          </svg>
+          <svg class="wave2" viewBox="0 0 400 22" preserveAspectRatio="none">
+            <path d="M0,11 Q30,4 60,11 T120,11 T180,11 T240,11 T300,11 T360,11 T400,11 V22 H0 Z" fill="rgba(160,225,250,0.22)"/>
+          </svg>
+          <svg class="wave3" viewBox="0 0 400 22" preserveAspectRatio="none">
+            <path d="M0,11 Q20,7 40,11 T80,11 T120,11 T160,11 T200,11 T240,11 T280,11 T320,11 T360,11 T400,11 V22 H0 Z" fill="rgba(180,235,255,0.18)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="cup-number" id="cupNumber"></div>
+    </div>
+  </div>
+
+  <!-- Quick Add Buttons -->
+  <div class="quick-add" id="quickAdd">
+    <button class="add-btn" onclick="addWater(100, this)">
+      <span class="plus">+</span>100ml
+    </button>
+    <button class="add-btn" onclick="addWater(200, this)">
+      <span class="plus">+</span>200ml
+    </button>
+    <button class="add-btn" onclick="addWater(300, this)">
+      <span class="plus">+</span>300ml
+    </button>
+    <button class="add-btn" onclick="addWater(500, this)">
+      <span class="plus">+</span>500ml
+    </button>
+    <button class="add-btn" id="customBtn" onclick="showCustomInput()">
+      <span class="plus">···</span>自定义
+    </button>
+  </div>
+  <!-- Custom amount input (hidden) -->
+  <div class="custom-input-row" id="customInputRow" style="display:none;">
+    <input type="number" id="customAmount" value="250" min="10" max="5000" step="10" inputmode="numeric" placeholder="ml">
+    <span class="unit">ml</span>
+    <button class="goal-save" onclick="addCustomWater()">确认</button>
+    <button class="goal-save" style="background:#B8D8E8;" onclick="hideCustomInput()">取消</button>
+  </div>
+
+  <!-- Goal Setting -->
+  <div class="goal-section">
+    <div class="goal-label">每日喝水目标</div>
+    <div class="goal-row">
+      <input type="number" id="goalInput" value="2000" min="200" max="10000" step="100" inputmode="numeric">
+      <span class="unit">ml / 天</span>
+      <button class="goal-save" onclick="saveGoal()">确认</button>
+    </div>
+  </div>
+
+  <!-- Weekly Summary -->
+  <div class="week-strip" id="weekStrip"></div>
+
+  <!-- Today's Records -->
+  <div class="records-section">
+    <div class="records-header">
+      <span>今日记录</span>
+      <span style="font-size:13px;opacity:0.7;" id="recordCount"></span>
+    </div>
+    <div class="records-list" id="recordsList"></div>
+  </div>
+</div>
+
+<!-- Celebration -->
+<div class="celebration" id="celebration"></div>
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+const STORAGE_KEY = 'drink-water-v2';
+
+// ── Completion Sound ──
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playCompleteSound() {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = now + i * 0.12;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.25, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.6);
+    });
+  } catch(e) {}
+}
+
+// ── Data ──
+
+function getToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { goal: 2000, records: [] };
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let data = loadData();
+let prevTotal = 0;
+
+function getTodayRecords() {
+  const today = getToday();
+  return data.records.filter(r => r.date === today);
+}
+
+function getTodayTotal() {
+  return getTodayRecords().reduce((sum, r) => sum + r.amount, 0);
+}
+
+function getDayTotal(dateStr) {
+  return data.records.filter(r => r.date === dateStr).reduce((sum, r) => sum + r.amount, 0);
+}
+
+function formatDate() {
+  const d = new Date();
+  const weekdays = ['日','一','二','三','四','五','六'];
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
+}
+
+function formatTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── Render All ──
+
+function renderAll() {
+  const total = getTodayTotal();
+  const goal = data.goal;
+  const pct = goal > 0 ? Math.min(total / goal, 1) : 0;
+  const pctInt = Math.round(pct * 100);
+
+  // Header
+  document.getElementById('dateText').textContent = formatDate();
+  document.getElementById('currentMl').textContent = total;
+  document.getElementById('goalMl').textContent = goal + 'ml';
+  document.getElementById('goalInput').value = goal;
+
+  // Green check
+  const check = document.getElementById('goalCheck');
+  if (pct >= 1 && total > 0) {
+    check.classList.add('show');
+  } else {
+    check.classList.remove('show');
+  }
+
+  // Water level inside cup
+  const cupInnerH = 240;
+  const waterH = pct * cupInnerH;
+  const waterEl = document.getElementById('water');
+  waterEl.style.height = waterH + 'px';
+
+  // Wave position
+  const waveC = document.getElementById('waveContainer');
+  waveC.style.bottom = waterH + 'px';
+  waveC.style.display = pct > 0.02 ? 'block' : 'none';
+
+  // Cup center number (show when nearly empty)
+  const cupNum = document.getElementById('cupNumber');
+  if (pct < 0.05) {
+    cupNum.textContent = goal + 'ml';
+    cupNum.classList.remove('hidden');
+  } else {
+    cupNum.classList.add('hidden');
+  }
+
+  // Records list
+  const records = getTodayRecords().slice().reverse();
+  const listEl = document.getElementById('recordsList');
+  document.getElementById('recordCount').textContent = records.length > 0 ? records.length + ' 次' : '';
+  if (records.length === 0) {
+    listEl.innerHTML = `<div class="empty-state"><span class="empty-icon">🥛</span><div>还没喝水哦，快喝一杯吧</div></div>`;
+  } else {
+    listEl.innerHTML = records.map((r, i) => `
+      <div class="record-item" id="rec-${i}">
+        <div class="record-dot"></div>
+        <div class="record-info">
+          <div class="record-time">${r.time}</div>
+        </div>
+        <span class="record-amount">+${r.amount}ml</span>
+        <button class="record-delete" onclick="deleteRecord(${i}, this)">×</button>
+      </div>
+    `).join('');
+  }
+
+  // Weekly strip
+  renderWeekStrip();
+}
+
+function renderWeekStrip() {
+  const strip = document.getElementById('weekStrip');
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = Sun
+  // Build array of last 7 days: [dateStr, label]
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const dayNames = ['日','一','二','三','四','五','六'];
+    days.push({
+      dateStr,
+      dayName: dayNames[d.getDay()],
+      dayNum: d.getDate(),
+      isToday: i === 0,
+      total: getDayTotal(dateStr),
+      pct: Math.min(getDayTotal(dateStr) / data.goal, 1)
+    });
+  }
+
+  strip.innerHTML = days.map(d => {
+    let icon = '';
+    if (d.total > 0 && d.pct >= 1) icon = '✅';
+    else if (d.total > 0) icon = '💧';
+    else icon = '·';
+    return `
+      <div class="week-day${d.isToday ? ' today' : ''}">
+        <span class="day-name">${d.dayName}</span>
+        <span class="day-num">${d.dayNum}</span>
+        <span class="day-icon">${icon}</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Add Water ──
+
+function addWater(amount, btnEl) {
+  prevTotal = getTodayTotal();
+
+  // Button ripple
+  if (btnEl) spawnRipple(btnEl);
+
+  // Record immediately
+  const record = { date: getToday(), amount, time: formatTime() };
+  data.records.push(record);
+  saveData(data);
+  renderAll();
+
+  const newTotal = getTodayTotal();
+  if (prevTotal < data.goal && newTotal >= data.goal && newTotal > 0) {
+    setTimeout(() => {
+      celebrate();
+      playCompleteSound();
+    }, 400);
+  }
+
+  showToast('已记录 +' + amount + 'ml  ·  点击撤销');
+}
+
+// ── Custom Amount ──
+
+function showCustomInput() {
+  document.getElementById('customInputRow').style.display = 'flex';
+  document.getElementById('customAmount').focus();
+  document.getElementById('customBtn').style.opacity = '0.4';
+}
+
+function hideCustomInput() {
+  document.getElementById('customInputRow').style.display = 'none';
+  document.getElementById('customBtn').style.opacity = '1';
+}
+
+function addCustomWater() {
+  const input = document.getElementById('customAmount');
+  let val = parseInt(input.value);
+  if (isNaN(val) || val < 10) val = 10;
+  if (val > 5000) val = 5000;
+  hideCustomInput();
+  addWater(val, null);
+}
+
+function spawnRipple(btn) {
+  const ripple = document.createElement('div');
+  ripple.className = 'ripple';
+  const size = Math.min(btn.offsetWidth, btn.offsetHeight);
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = '50%';
+  ripple.style.top = '50%';
+  ripple.style.marginLeft = -size/2 + 'px';
+  ripple.style.marginTop = -size/2 + 'px';
+  btn.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+}
+
+// ── Delete ──
+
+let lastDeleted = null;
+
+function deleteRecord(displayIndex, btnEl) {
+  const records = getTodayRecords().slice().reverse();
+  const record = records[displayIndex];
+  if (!record) return;
+
+  const actualIndex = data.records.findIndex(r =>
+    r.date === record.date && r.time === record.time && r.amount === record.amount
+  );
+  if (actualIndex < 0) return;
+
+  lastDeleted = data.records.splice(actualIndex, 1)[0];
+  saveData(data);
+
+  // Animate removal
+  const item = btnEl.closest('.record-item');
+  if (item) {
+    item.style.transform = 'translateX(60px)';
+    item.style.opacity = '0';
+    setTimeout(() => renderAll(), 300);
+  } else {
+    renderAll();
+  }
+
+  showToast('已删除  ·  点击撤销');
+}
+
+// ── Toast ──
+
+let toastTimer = null;
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  toast.style.animation = 'none';
+  toast.offsetHeight;
+  toast.style.animation = 'toast-in 0.35s ease, toast-out 0.3s ease 2.2s forwards';
+  toast.onclick = () => {
+    if (lastDeleted) {
+      data.records.push(lastDeleted);
+      lastDeleted = null;
+      saveData(data);
+      renderAll();
+      hideToast();
+    }
+  };
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 2600);
+}
+
+function hideToast() {
+  document.getElementById('toast').style.display = 'none';
+  lastDeleted = null;
+}
+
+// ── Goal ──
+
+function saveGoal() {
+  const input = document.getElementById('goalInput');
+  let val = parseInt(input.value);
+  if (isNaN(val) || val < 200) val = 200;
+  if (val > 10000) val = 10000;
+  data.goal = val;
+  saveData(data);
+  renderAll();
+}
+
+// ── Celebration ──
+
+function celebrate() {
+  const el = document.getElementById('celebration');
+  const colors = ['#7EC8E3','#5EC497','#A8DFF0','#3A9FC0','#B8E8F8','#5BB8D8','#8ED8A0','#90D8F0'];
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + '%';
+    c.style.top = -(Math.random() * 60) + 'px';
+    c.style.width = (6 + Math.random() * 12) + 'px';
+    c.style.height = (6 + Math.random() * 12) + 'px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDelay = Math.random() * 0.8 + 's';
+    c.style.animationDuration = (2 + Math.random() * 2.5) + 's';
+    frag.appendChild(c);
+  }
+  el.appendChild(frag);
+  setTimeout(() => { el.innerHTML = ''; }, 3500);
+}
+
+// ── Init ──
+
+renderAll();
+</script>
+
+</body>
+</html>
