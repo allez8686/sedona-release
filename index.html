@@ -499,6 +499,50 @@ input[type="range"] {
   margin-top: 8px;
 }
 
+/* ── Notes ── */
+.notes-section {
+  margin-top: 24px;
+}
+.notes-section .section-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+.notes-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1.5px solid #e8ded0;
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+  font-family: inherit;
+  resize: vertical;
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s;
+}
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.notes-textarea::placeholder {
+  color: #c5b8a8;
+}
+.notes-status {
+  text-align: right;
+  font-size: 12px;
+  color: var(--green);
+  margin-top: 4px;
+  padding-right: 4px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.notes-status.show { opacity: 1; }
+
 /* ── Affirm Browse Page ── */
 .affirm-tabs {
   display: flex;
@@ -637,6 +681,12 @@ input[type="range"] {
         </div>
         <div class="affirm-hint">轻触卡片切换下一句</div>
       </div>
+    </div>
+
+    <div class="notes-section" style="margin-top:24px;">
+      <div class="section-label">📝 释放心得</div>
+      <textarea class="notes-textarea" id="homeNotes" placeholder="记录你的释放感受、心得、或任何当下的想法……"></textarea>
+      <div class="notes-status" id="notesStatus">✓ 已保存</div>
     </div>
   </div>
 
@@ -1859,6 +1909,20 @@ loadReminders();
 startReminderCheck();
 requestNotificationPermission();
 renderHomeAffirmation();
+
+// Notes
+const notesArea = document.getElementById('homeNotes');
+notesArea.value = localStorage.getItem('sedona_notes') || '';
+let notesSaveTimer = null;
+notesArea.addEventListener('input', () => {
+  clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(() => {
+    localStorage.setItem('sedona_notes', notesArea.value);
+    const status = document.getElementById('notesStatus');
+    status.classList.add('show');
+    setTimeout(() => status.classList.remove('show'), 2000);
+  }, 600);
+});
 </script>
 </body>
 </html>
