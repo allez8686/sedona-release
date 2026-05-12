@@ -753,10 +753,13 @@ const ACHIEVEMENTS = [
   { id: 'mood-master', icon: '🌈', name: '情绪大师', desc: '每种心情都记录过', check: (d) => d.allMoods.size >= 5 },
 ];
 
-// ========== GoTrue Auth ==========
+// ========== Auth ==========
 const GT_URL = window.location.hostname.includes('netlify.app')
   ? '/.netlify/identity'
   : 'https://sedona-jf.netlify.app/.netlify/identity';
+const API_BASE = window.location.hostname.includes('netlify.app')
+  ? '/.netlify/functions'
+  : 'https://sedona-jf.netlify.app/.netlify/functions';
 
 function getSession() {
   try {
@@ -775,7 +778,7 @@ function clearSession() {
 
 function isLoggedIn() {
   const s = getSession();
-  return !!(s && s.access_token);
+  return !!(s && s.token);
 }
 
 function getUserId() {
@@ -785,32 +788,8 @@ function getUserId() {
 
 async function getToken() {
   const s = getSession();
-  if (!s || !s.access_token) return null;
-  // Check if token is expired
-  if (s.expires_at && Date.now() > s.expires_at - 60000) {
-    const newToken = await refreshToken(s.refresh_token);
-    if (!newToken) { clearSession(); return null; }
-    return newToken;
-  }
-  return s.access_token;
-}
-
-async function refreshToken(refreshTokenStr) {
-  try {
-    const res = await fetch(`${GT_URL}/token?grant_type=refresh_token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshTokenStr }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const s = getSession();
-    s.access_token = data.access_token;
-    s.refresh_token = data.refresh_token;
-    s.expires_at = Date.now() + (data.expires_in || 3600) * 1000;
-    saveSession(s);
-    return data.access_token;
-  } catch (e) { return null; }
+  if (!s || !s.token) return null;
+  return s.token;
 }
 
 // ========== Auth UI ==========
@@ -886,6 +865,30 @@ async function handleLogin(e) {
   const password = document.getElementById('login-password').value;
 
   try {
+    // Try custom login first
+    const loginRes = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const loginData = await loginRes.json();
+
+    if (loginRes.ok && loginData.token) {
+      saveSession({
+        token: loginData.token,
+        user_id: loginData.user.id,
+        email: loginData.user.email,
+      });
+      closeAuth();
+      updateUserUI();
+      await onLoginSync();
+      showToast('✅ 已登录: ' + loginData.user.email);
+      btn.disabled = false;
+      btn.textContent = '登录';
+      return;
+    }
+
+    // Fall back to GoTrue (for older confirmed users)
     const res = await fetch(`${GT_URL}/token?grant_type=password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -897,23 +900,20 @@ async function handleLogin(e) {
       if (data.error === 'Email not confirmed') {
         showAuthError('邮箱尚未验证，请检查邮箱中的确认邮件并点击验证链接。');
       } else {
-        showAuthError(data.error_description || data.msg || '登录失败，请检查邮箱和密码');
+        showAuthError(data.error_description || data.msg || loginData.error || '登录失败，请检查邮箱和密码');
       }
       btn.disabled = false;
       btn.textContent = '登录';
       return;
     }
 
-    // Get user profile
     const userRes = await fetch(`${GT_URL}/user`, {
       headers: { Authorization: `Bearer ${data.access_token}` },
     });
     const user = await userRes.json();
 
     saveSession({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+      token: data.access_token,
       user_id: user.id,
       email: user.email,
     });
@@ -941,53 +941,30 @@ async function handleRegister(e) {
   const password = document.getElementById('register-password').value;
 
   try {
-    const signupRes = await fetch(`${GT_URL}/signup`, {
+    const regRes = await fetch(`${API_BASE}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const signupData = await signupRes.json();
+    const regData = await regRes.json();
 
-    if (!signupRes.ok) {
-      showAuthError(signupData.msg || signupData.error || '注册失败，请稍后再试');
+    if (!regRes.ok) {
+      showAuthError(regData.error || '注册失败，请稍后再试');
       btn.disabled = false;
       btn.textContent = '注册账号';
       return;
     }
-
-    // Auto-login after signup — no email verification needed
-    const tokenRes = await fetch(`${GT_URL}/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const tokenData = await tokenRes.json();
-
-    if (!tokenRes.ok) {
-      showAuthError(tokenData.error_description || tokenData.msg || '注册成功但自动登录失败，请尝试手动登录');
-      btn.disabled = false;
-      btn.textContent = '注册账号';
-      return;
-    }
-
-    // Get user profile
-    const userRes = await fetch(`${GT_URL}/user`, {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const user = await userRes.json();
 
     saveSession({
-      access_token: tokenData.access_token,
-      refresh_token: tokenData.refresh_token,
-      expires_at: Date.now() + (tokenData.expires_in || 3600) * 1000,
-      user_id: user.id,
-      email: user.email,
+      token: regData.token,
+      user_id: regData.user.id,
+      email: regData.user.email,
     });
 
     closeAuth();
     updateUserUI();
     await onLoginSync();
-    showToast('✅ 注册成功，已自动登录: ' + user.email);
+    showToast('✅ 注册成功，已自动登录: ' + regData.user.email);
   } catch (err) {
     showAuthError('网络错误，请稍后再试');
   }
@@ -997,18 +974,6 @@ async function handleRegister(e) {
 }
 
 async function handleLogout() {
-  try {
-    const s = getSession();
-    if (s && s.access_token) {
-      await fetch(`${GT_URL}/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${s.access_token}`,
-        },
-      });
-    }
-  } catch (e) {}
   clearSession();
   updateUserUI();
   showToast('👋 已退出账号，数据保留在本地');
@@ -1030,10 +995,6 @@ function updateUserUI() {
 }
 
 // ========== Cloud Sync ==========
-const API_BASE = window.location.hostname.includes('netlify.app')
-  ? '/.netlify/functions'
-  : 'https://sedona-jf.netlify.app/.netlify/functions';
-
 async function cloudAPI(method, body) {
   const token = await getToken();
   if (!token) return null;
@@ -1573,7 +1534,7 @@ function init() {
 
   // Restore session on load
   const s = getSession();
-  if (s && s.access_token) {
+  if (s && s.token) {
     updateUserUI();
     onLoginSync().catch(() => {});
   }

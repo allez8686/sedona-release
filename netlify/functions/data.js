@@ -1,46 +1,53 @@
 const { getStore } = require('@netlify/blobs');
 
-exports.handler = async (event, context) => {
-  const user = context.clientContext && context.clientContext.identity;
+async function getUserFromToken(token) {
+  if (!token) return null;
+  try {
+    const store = getStore({ name: 'auth', consistency: 'strong' });
+    const sessionData = await store.get(`session_${token}`);
+    if (!sessionData) return null;
+    return JSON.parse(sessionData);
+  } catch (e) { return null; }
+}
 
-  if (!user || !user.sub) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: '请先登录' }),
-      headers: { 'Content-Type': 'application/json' },
-    };
+exports.handler = async (event, context) => {
+  let userId, email;
+
+  const identityUser = context.clientContext && context.clientContext.identity;
+  if (identityUser && identityUser.sub) {
+    userId = identityUser.sub;
+    email = identityUser.email;
+  } else {
+    const authHeader = event.headers.authorization || event.headers.Authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    if (token) {
+      const session = await getUserFromToken(token);
+      if (session && session.userId) {
+        userId = session.userId;
+        email = session.email;
+      }
+    }
   }
 
-  const userId = user.sub;
+  if (!userId) {
+    return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '请先登录' }) };
+  }
+
   const store = getStore({ name: 'entries', consistency: 'strong' });
   const key = `user_${userId}_entries`;
 
   try {
     if (event.httpMethod === 'GET') {
       const data = await store.get(key);
-      return {
-        statusCode: 200,
-        body: data || '{"entries":{}}',
-        headers: { 'Content-Type': 'application/json' },
-      };
+      return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: data || '{"entries":{}}' };
     }
-
     if (event.httpMethod === 'POST' || event.httpMethod === 'PUT') {
       const body = JSON.parse(event.body);
       await store.set(key, JSON.stringify(body));
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ ok: true }),
-        headers: { 'Content-Type': 'application/json' },
-      };
+      return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: true }) };
     }
-
     return { statusCode: 405, body: 'Method Not Allowed' };
   } catch (e) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: e.message }),
-      headers: { 'Content-Type': 'application/json' },
-    };
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: e.message }) };
   }
 };
