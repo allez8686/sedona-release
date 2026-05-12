@@ -881,17 +881,13 @@ function handleAction(action) {
   if (action === 'next') {
     if (currentStep < getMaxStep()) {
       currentStep++;
-      if (currentStep === getMaxStep()) {
-        stopTimer();
-        saveDiaryEntry();
-      }
       renderCurrentFlow();
     }
   } else if (action === 'accept') {
     showAcceptMessage();
   } else if (action === 'repeat') {
-    if (currentFlow === 'emotion') startFlow('emotion');
-    else startFlow('wants', currentWantName);
+    currentStep = 0;
+    renderCurrentFlow();
   } else if (action === 'home') {
     showResultModal();
   }
@@ -964,17 +960,17 @@ function showResultModal() {
   const overlay = document.getElementById('resultOverlay');
   overlay.classList.add('show');
 
+  // Stop timer when going home
+  stopTimer();
+
   // Bind result options
   overlay.querySelectorAll('.result-option').forEach(opt => {
     opt.onclick = () => {
       const result = opt.dataset.result;
       if (result !== 'skip') {
-        // Update the last diary entry with the result
-        const entries = getDiary();
-        if (entries.length > 0) {
-          entries[0].result = result;
-          saveDiary(entries);
-        }
+        saveDiaryEntry(result);
+      } else {
+        saveDiaryEntry(null);
       }
       overlay.classList.remove('show');
       showHome();
