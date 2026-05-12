@@ -1,4 +1,4 @@
-const { getStore } = require('@netlify/blobs');
+const { blobGet, blobSet } = require('./lib/storage');
 const crypto = require('crypto');
 
 exports.handler = async (event, context) => {
@@ -15,11 +15,8 @@ exports.handler = async (event, context) => {
     return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '请求格式错误' }) };
   }
 
-  const store = getStore({ name: 'auth', consistency: 'strong' });
-  const userKey = `user_${email}`;
-
   try {
-    const userData = await store.get(userKey);
+    const userData = await blobGet('auth', `user_${email}`);
     if (!userData) {
       return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '账号不存在，请先注册' }) };
     }
@@ -32,7 +29,9 @@ exports.handler = async (event, context) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    await store.set(`session_${token}`, JSON.stringify({ userId: user.userId, email: user.email, createdAt: Date.now() }));
+    await blobSet('auth', `session_${token}`, JSON.stringify({
+      userId: user.userId, email: user.email, createdAt: Date.now(),
+    }));
 
     return {
       statusCode: 200,

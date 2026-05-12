@@ -1,4 +1,4 @@
-const { getStore } = require('@netlify/blobs');
+const { blobGet, blobSet } = require('./lib/storage');
 const crypto = require('crypto');
 
 exports.handler = async (event, context) => {
@@ -19,11 +19,8 @@ exports.handler = async (event, context) => {
     return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '邮箱或密码格式不正确（密码至少6位）' }) };
   }
 
-  const store = getStore({ name: 'auth', consistency: 'strong' });
-  const userKey = `user_${email}`;
-
   try {
-    const existing = await store.get(userKey);
+    const existing = await blobGet('auth', `user_${email}`).catch(() => null);
     if (existing) {
       return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '该邮箱已注册，请直接登录' }) };
     }
@@ -32,10 +29,14 @@ exports.handler = async (event, context) => {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha256').toString('hex');
 
-    await store.set(userKey, JSON.stringify({ userId, email, salt, hash, createdAt: new Date().toISOString() }));
+    await blobSet('auth', `user_${email}`, JSON.stringify({
+      userId, email, salt, hash, createdAt: new Date().toISOString(),
+    }));
 
     const token = crypto.randomBytes(32).toString('hex');
-    await store.set(`session_${token}`, JSON.stringify({ userId, email, createdAt: Date.now() }));
+    await blobSet('auth', `session_${token}`, JSON.stringify({
+      userId, email, createdAt: Date.now(),
+    }));
 
     return {
       statusCode: 200,

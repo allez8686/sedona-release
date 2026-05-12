@@ -1,10 +1,9 @@
-const { getStore } = require('@netlify/blobs');
+const { blobGet, blobSet } = require('./lib/storage');
 
 async function getUserFromToken(token) {
   if (!token) return null;
   try {
-    const store = getStore({ name: 'auth', consistency: 'strong' });
-    const sessionData = await store.get(`session_${token}`);
+    const sessionData = await blobGet('auth', `session_${token}`);
     if (!sessionData) return null;
     return JSON.parse(sessionData);
   } catch (e) { return null; }
@@ -33,17 +32,16 @@ exports.handler = async (event, context) => {
     return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '请先登录' }) };
   }
 
-  const store = getStore({ name: 'entries', consistency: 'strong' });
   const key = `user_${userId}_entries`;
 
   try {
     if (event.httpMethod === 'GET') {
-      const data = await store.get(key);
+      const data = await blobGet('entries', key);
       return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: data || '{"entries":{}}' };
     }
     if (event.httpMethod === 'POST' || event.httpMethod === 'PUT') {
       const body = JSON.parse(event.body);
-      await store.set(key, JSON.stringify(body));
+      await blobSet('entries', key, JSON.stringify(body));
       return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: true }) };
     }
     return { statusCode: 405, body: 'Method Not Allowed' };
