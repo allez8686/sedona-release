@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>六年之约 · Jack要加油</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+/* ========== CSS Variables & Reset ========== */
+:root {
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  --white: #ffffff;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.04);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== Navigation ========== */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center;
+  height: 60px; gap: 8px;
+}
+.nav-logo {
+  font-size: 20px; font-weight: 800;
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-right: auto;
+}
+.nav-link {
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 14px; font-weight: 500; color: var(--gray-500);
+  cursor: pointer; transition: all 0.2s; border: none; background: none;
+  white-space: nowrap;
+}
+.nav-link:hover { color: var(--blue-600); background: var(--blue-50); }
+.nav-link.active { color: var(--blue-600); background: var(--blue-100); }
+
+/* User button in nav */
+.nav-user {
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 14px; font-weight: 500; border: 2px solid var(--gray-200);
+  background: var(--white); transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  margin-left: 4px;
+}
+.nav-user:hover { border-color: var(--purple); background: #faf5ff; }
+.nav-user.logged-in { border-color: #d8b4fe; background: #faf5ff; color: #7c3aed; }
+
+/* ========== Layout ========== */
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* ========== Auth Modal ========== */
+.auth-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 250;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+.auth-modal {
+  background: var(--white); border-radius: var(--radius-xl);
+  padding: 32px; max-width: 420px; width: 100%;
+  box-shadow: var(--shadow-xl); animation: fadeIn 0.3s ease;
+}
+.auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; background: var(--gray-100); padding: 4px; }
+.auth-tab {
+  flex: 1; padding: 10px; border: none; background: none;
+  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; color: var(--gray-500);
+}
+.auth-tab.active { background: var(--white); color: var(--gray-800); box-shadow: var(--shadow-sm); }
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+.auth-input {
+  width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200);
+  border-radius: var(--radius); font-size: 14px; font-family: inherit;
+  transition: border-color 0.2s; outline: none;
+}
+.auth-input:focus { border-color: var(--purple); }
+.auth-submit {
+  padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; color: white;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  transition: all 0.2s;
+}
+.auth-submit:hover { opacity: 0.9; box-shadow: var(--shadow-md); }
+.auth-switch { text-align: center; font-size: 13px; color: var(--gray-400); margin-top: 8px; }
+.auth-switch a { color: #7c3aed; cursor: pointer; font-weight: 500; }
+.auth-close {
+  position: absolute; top: 12px; right: 16px;
+  background: none; border: none; font-size: 24px; cursor: pointer;
+  color: var(--gray-400); padding: 4px 8px;
+}
+.auth-error { background: #fef2f2; color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
+.auth-success { background: #f0fdf4; color: #065f46; padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
+
+/* ========== Setup Overlay ========== */
+.setup-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.setup-card {
+  background: var(--white); border-radius: var(--radius-xl);
+  padding: 32px; max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+}
+.setup-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.setup-desc { font-size: 14px; color: var(--gray-500); margin-bottom: 24px; line-height: 1.6; }
+.setup-steps { margin-bottom: 24px; }
+.setup-step {
+  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;
+  padding: 14px; background: var(--gray-50); border-radius: var(--radius);
+}
+.setup-step-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--purple);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.setup-step-text { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+.setup-step-text code { background: var(--gray-200); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+.setup-sql {
+  background: var(--gray-800); color: #e2e8f0; padding: 14px; border-radius: var(--radius);
+  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;
+  overflow-x: auto; white-space: pre; margin: 8px 0;
+}
+.setup-copy-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--gray-300);
+  background: var(--white); cursor: pointer; margin-top: 4px;
+}
+.setup-copy-btn:hover { background: var(--gray-50); }
+
+/* ========== Cards ========== */
+.card {
+  background: var(--white); border-radius: var(--radius-lg);
+  padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--gray-100);
+  transition: all 0.2s;
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title { font-size: 18px; font-weight: 700; color: var(--gray-800); }
+.card-subtitle { font-size: 13px; color: var(--gray-400); }
+
+/* ========== Countdown Hero ========== */
+.hero {
+  background: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-800) 50%, var(--blue-900) 100%);
+  border-radius: var(--radius-xl); padding: 40px 32px;
+  color: white; position: relative; overflow: hidden;
+  margin-bottom: 24px;
+}
+.hero::before {
+  content: ''; position: absolute; top: -50%; right: -20%;
+  width: 400px; height: 400px; border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -30%; left: -10%;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+}
+.hero-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative; z-index: 1; }
+.hero-badge {
+  background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+}
+.hero-title { font-size: 28px; font-weight: 800; margin-bottom: 4px; position: relative; z-index: 1; }
+.hero-subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 24px; position: relative; z-index: 1; }
+.countdown-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px,1fr));
+  gap: 12px; position: relative; z-index: 1;
+}
+.countdown-item {
+  background: rgba(255,255,255,0.12); border-radius: var(--radius);
+  padding: 16px; text-align: center; backdrop-filter: blur(4px);
+}
+.countdown-num { font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.countdown-label { font-size: 12px; opacity: 0.7; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.countdown-divider { font-size: 28px; font-weight: 300; opacity: 0.4; display: flex; align-items: center; justify-content: center; }
+
+/* ========== Stats Grid ========== */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--white); border-radius: var(--radius-lg);
+  padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--gray-100);
+  display: flex; align-items: center; gap: 16px;
+}
+.stat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.stat-icon.blue { background: var(--blue-100); color: var(--blue-600); }
+.stat-icon.green { background: #d1fae5; color: var(--green); }
+.stat-icon.amber { background: #fef3c7; color: var(--amber); }
+.stat-icon.purple { background: #ede9fe; color: var(--purple); }
+.stat-value { font-size: 28px; font-weight: 800; line-height: 1.2; }
+.stat-label { font-size: 13px; color: var(--gray-400); }
+
+/* ========== Progress Bar ========== */
+.progress-wrapper { margin: 16px 0; }
+.progress-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+.progress-bar {
+  height: 12px; background: var(--gray-100); border-radius: 6px;
+  overflow: hidden; position: relative;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--blue-500), var(--blue-600));
+  border-radius: 6px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.progress-fill.goal-reached { background: linear-gradient(90deg, var(--green), #34d399); }
+.progress-milestones {
+  display: flex; justify-content: space-between; margin-top: 6px;
+  font-size: 11px; color: var(--gray-400);
+}
+
+/* ========== Check-in Form ========== */
+.checkin-form { display: flex; flex-direction: column; gap: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.form-label .emoji { margin-right: 4px; }
+.form-textarea {
+  width: 100%; min-height: 80px; padding: 12px 16px;
+  border: 2px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 14px; font-family: inherit; resize: vertical;
+  transition: border-color 0.2s; outline: none;
+}
+.form-textarea:focus { border-color: var(--blue-400); }
+.form-input {
+  width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200);
+  border-radius: var(--radius); font-size: 14px; font-family: inherit;
+  transition: border-color 0.2s; outline: none;
+}
+.form-input:focus { border-color: var(--blue-400); }
+
+/* Mood Selector */
+.mood-selector { display: flex; gap: 12px; flex-wrap: wrap; }
+.mood-btn {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid transparent; background: var(--gray-50);
+  font-size: 28px; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.mood-btn:hover { transform: scale(1.1); }
+.mood-btn.selected { border-color: var(--blue-500); background: var(--blue-50); transform: scale(1.1); }
+
+/* Toggle */
+.toggle-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.toggle-btn {
+  padding: 10px 20px; border-radius: 24px; border: 2px solid var(--gray-200);
+  background: var(--white); cursor: pointer; font-size: 14px; font-weight: 500;
+  transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+}
+.toggle-btn:hover { border-color: var(--blue-300); }
+.toggle-btn.on { background: var(--blue-50); border-color: var(--blue-500); color: var(--blue-700); }
+
+/* Buttons */
+.btn {
+  padding: 12px 24px; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; border: none; font-family: inherit;
+}
+.btn-primary { background: var(--blue-600); color: white; }
+.btn-primary:hover { background: var(--blue-700); box-shadow: var(--shadow-md); }
+.btn-outline { background: var(--white); color: var(--blue-600); border: 2px solid var(--blue-200); }
+.btn-outline:hover { background: var(--blue-50); }
+.btn-danger { background: var(--white); color: var(--red); border: 2px solid #fecaca; }
+.btn-danger:hover { background: #fef2f2; }
+.btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
+.btn-lg { padding: 16px 32px; font-size: 16px; border-radius: 12px; }
+
+/* ========== Calendar Heatmap ========== */
+.heatmap-wrapper { overflow-x: auto; padding: 8px 0; }
+.heatmap { display: flex; gap: 3px; }
+.heatmap-col { display: flex; flex-direction: column; gap: 3px; }
+.heatmap-cell {
+  width: 14px; height: 14px; border-radius: 3px; background: var(--gray-100);
+  cursor: pointer; transition: all 0.15s;
+}
+.heatmap-cell:hover { transform: scale(1.3); }
+.heatmap-cell.l1 { background: #93c5fd; }
+.heatmap-cell.l2 { background: #60a5fa; }
+.heatmap-cell.l3 { background: #3b82f6; }
+.heatmap-cell.l4 { background: #2563eb; }
+.heatmap-labels { display: flex; gap: 4px; align-items: center; font-size: 11px; color: var(--gray-400); margin-top: 8px; justify-content: flex-end; }
+
+/* ========== Journal List ========== */
+.journal-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.journal-search { flex: 1; min-width: 200px; }
+.journal-select {
+  padding: 10px 16px; border: 2px solid var(--gray-200);
+  border-radius: 10px; font-size: 14px; font-family: inherit;
+  background: var(--white); outline: none; cursor: pointer;
+}
+
+.entry-list { display: flex; flex-direction: column; gap: 12px; }
+.entry-card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+  cursor: pointer; transition: all 0.2s;
+}
+.entry-card:hover { box-shadow: var(--shadow-md); border-color: var(--blue-200); }
+.entry-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.entry-date { font-weight: 700; font-size: 16px; }
+.entry-mood { font-size: 24px; }
+.entry-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.entry-tag {
+  padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+}
+.entry-tag.happy { background: #d1fae5; color: #065f46; }
+.entry-tag.challenge { background: #fef3c7; color: #92400e; }
+.entry-tag.thought { background: #dbeafe; color: #1e40af; }
+.entry-preview { font-size: 14px; color: var(--gray-500); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ========== Entry Detail Modal ========== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+.modal {
+  background: var(--white); border-radius: var(--radius-xl);
+  padding: 32px; max-width: 640px; width: 100%; max-height: 80vh;
+  overflow-y: auto; box-shadow: var(--shadow-xl);
+}
+.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+.modal-section { margin-bottom: 20px; }
+.modal-section-label { font-size: 13px; font-weight: 600; color: var(--gray-400); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.modal-section-content { font-size: 15px; line-height: 1.7; color: var(--gray-700); }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+
+/* ========== 72 Month Grid ========== */
+.month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 8px; }
+.month-cell {
+  padding: 16px 12px; border-radius: var(--radius); text-align: center;
+  border: 2px solid var(--gray-100); background: var(--white);
+  transition: all 0.2s; cursor: default;
+}
+.month-cell.completed { border-color: var(--green); background: #f0fdf4; }
+.month-cell.current { border-color: var(--blue-500); background: var(--blue-50); }
+.month-cell.future { opacity: 0.5; }
+.month-cell .month-num { font-size: 24px; font-weight: 800; }
+.month-cell .month-label { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.month-cell .month-savings { font-size: 12px; font-weight: 600; color: var(--green); margin-top: 4px; }
+.month-cell .month-rate { font-size: 11px; color: var(--gray-400); }
+
+/* ========== Achievements ========== */
+.achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; }
+.achievement-card {
+  padding: 20px; border-radius: var(--radius); text-align: center;
+  border: 2px solid var(--gray-100); background: var(--white);
+  transition: all 0.2s;
+}
+.achievement-card.earned { border-color: #fcd34d; background: #fffbeb; }
+.achievement-card.locked { opacity: 0.5; }
+.achievement-icon { font-size: 40px; margin-bottom: 8px; }
+.achievement-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.achievement-desc { font-size: 12px; color: var(--gray-400); }
+
+/* ========== Quote ========== */
+.quote-card {
+  background: linear-gradient(135deg, var(--blue-50), var(--white));
+  border-radius: var(--radius-lg); padding: 28px;
+  border: 2px solid var(--blue-100); text-align: center;
+  position: relative;
+}
+.quote-mark { font-size: 48px; color: var(--blue-200); line-height: 1; font-family: Georgia, serif; }
+.quote-text { font-size: 18px; font-weight: 600; color: var(--gray-700); margin: 8px 0; line-height: 1.6; }
+.quote-author { font-size: 13px; color: var(--gray-400); }
+
+/* ========== Empty State ========== */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--gray-400); }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-text { font-size: 15px; }
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--gray-800); color: white; padding: 12px 24px;
+  border-radius: 10px; font-size: 14px; font-weight: 500;
+  z-index: 400; animation: slideUp 0.3s ease;
+  box-shadow: var(--shadow-lg);
+}
+@keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+/* ========== Home Grid ========== */
+.home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.quote-refresh {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--blue-200); background: var(--white);
+  color: var(--blue-500); font-size: 12px; cursor: pointer; transition: all 0.2s;
+}
+.quote-refresh:hover { background: var(--blue-50); }
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  .nav-inner { gap: 2px; overflow-x: auto; }
+  .nav-link { font-size: 12px; padding: 6px 10px; }
+  .nav-user { font-size: 12px; padding: 4px 8px; }
+  .hero { padding: 24px 20px; }
+  .hero-title { font-size: 22px; }
+  .countdown-num { font-size: 24px; }
+  .countdown-grid { grid-template-columns: repeat(4, 1fr); }
+  .countdown-divider { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-value { font-size: 22px; }
+  .modal { padding: 20px; }
+  .auth-modal { padding: 20px; }
+  .month-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .home-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .container { padding: 12px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .countdown-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .countdown-item { padding: 12px; }
+  .countdown-num { font-size: 22px; }
+  .mood-selector { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-inner">
+    <span class="nav-logo">六年之约</span>
+    <button class="nav-link active" data-tab="home">主页</button>
+    <button class="nav-link" data-tab="checkin">每日打卡</button>
+    <button class="nav-link" data-tab="progress">进度总览</button>
+    <button class="nav-link" data-tab="journal">日记回顾</button>
+    <button class="nav-link" data-tab="roadmap">六年蓝图</button>
+    <button class="nav-user" id="nav-user-btn" onclick="handleUserClick()" title="账号">
+      👤 <span id="nav-user-label">账号</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Auth Modal -->
+<div class="auth-overlay" id="auth-overlay" style="display:none;">
+  <div class="auth-modal" style="position:relative;">
+    <button class="auth-close" onclick="closeAuth()">×</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">登录</button>
+      <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">注册</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-success" id="auth-success"></div>
+    <form class="auth-form" id="auth-form-login" onsubmit="handleLogin(event)">
+      <input type="email" class="auth-input" id="login-email" placeholder="邮箱地址" required autocomplete="email">
+      <input type="password" class="auth-input" id="login-password" placeholder="密码" required autocomplete="current-password" minlength="6">
+      <button type="submit" class="auth-submit">登录</button>
+    </form>
+    <form class="auth-form" id="auth-form-register" style="display:none;" onsubmit="handleRegister(event)">
+      <input type="email" class="auth-input" id="register-email" placeholder="邮箱地址" required autocomplete="email">
+      <input type="password" class="auth-input" id="register-password" placeholder="密码 (至少6位)" required autocomplete="new-password" minlength="6">
+      <button type="submit" class="auth-submit">注册账号</button>
+    </form>
+    <div class="auth-switch" style="margin-top:16px;">
+      <span id="auth-switch-text">还没有账号？</span> <a id="auth-switch-link" onclick="switchAuthTab('register')">立即注册</a>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase Setup Overlay -->
+<div class="setup-overlay" id="setup-overlay" style="display:none;">
+  <div class="setup-card">
+    <div class="setup-title">🔐 配置云同步</div>
+    <div class="setup-desc">连接 Supabase 数据库，让您的六年之约数据在多个设备间同步。只需 2 分钟完成设置。</div>
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="setup-step-num">1</div>
+        <div class="setup-step-text">
+          <strong>创建 Supabase 项目</strong><br>
+          打开 <a href="https://supabase.com" target="_blank">supabase.com</a>，注册/登录后点击 "New Project"，创建免费项目。
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-num">2</div>
+        <div class="setup-step-text">
+          <strong>创建数据库表</strong><br>
+          在 Supabase 左侧菜单进入 <code>SQL Editor</code>，粘贴以下 SQL 并运行：
+          <div class="setup-sql" id="setup-sql">-- 打卡记录表
+CREATE TABLE IF NOT EXISTS entries (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id UUID REFERENCES auth.users NOT NULL,
+  date DATE NOT NULL,
+  mood TEXT,
+  happy TEXT,
+  challenge TEXT,
+  thoughts TEXT,
+  savings INTEGER DEFAULT 0,
+  exercised BOOLEAN DEFAULT false,
+  learned BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
+-- 用户设置表
+CREATE TABLE IF NOT EXISTS user_settings (
+  user_id UUID REFERENCES auth.users PRIMARY KEY,
+  target_amount INTEGER DEFAULT 1000000
+);
+
+-- 行级安全策略
+ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own entries" ON entries
+  FOR ALL USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users manage own settings" ON user_settings
+  FOR ALL USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);</div>
+          <button class="setup-copy-btn" onclick="copySQL()">📋 复制 SQL</button>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-num">3</div>
+        <div class="setup-step-text">
+          <strong>填入连接信息</strong><br>
+          在 Supabase 左侧菜单 <code>Settings → API</code>，复制 <code>Project URL</code> 和 <code>anon public key</code>。
+        </div>
+      </div>
+    </div>
+    <div class="auth-form">
+      <input type="text" class="auth-input" id="setup-url" placeholder="Project URL (例: https://xxxxx.supabase.co)">
+      <input type="text" class="auth-input" id="setup-key" placeholder="anon public key">
+      <button class="auth-submit" onclick="saveSetup()" style="background:linear-gradient(135deg,#10b981,#059669);">✅ 保存并连接</button>
+      <div style="text-align:center;margin-top:8px;">
+        <a style="font-size:13px;color:var(--gray-400);cursor:pointer;" onclick="skipSetup()">跳过，仅使用本地存储</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: 主页 -->
+<div class="container tab-content active" id="tab-home">
+  <!-- Hero Countdown -->
+  <div class="hero">
+    <div class="hero-top">
+      <span class="hero-badge">⏳ 倒计时</span>
+      <span class="hero-badge" id="target-date-badge">2030.12.30</span>
+    </div>
+    <h1 class="hero-title">每一天，都比昨天好一点点</h1>
+    <p class="hero-subtitle">6年之约，不是让你6年必须100万。是让你6年后，不再是现在的你。</p>
+    <div style="position:relative;z-index:1;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;opacity:0.8;">
+        <span>⏳ 六年进度</span>
+        <span id="time-progress-pct">0%</span>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;">
+        <div id="time-progress-bar" style="height:100%;background:rgba(255,255,255,0.5);border-radius:3px;transition:width 0.6s;width:0%;"></div>
+      </div>
+    </div>
+    <div class="countdown-grid" id="countdown">
+      <div class="countdown-item"><div class="countdown-num" id="cd-years">--</div><div class="countdown-label">年</div></div>
+      <div class="countdown-item"><div class="countdown-num" id="cd-months">--</div><div class="countdown-label">月</div></div>
+      <div class="countdown-item"><div class="countdown-num" id="cd-days">--</div><div class="countdown-label">天</div></div>
+      <div class="countdown-item"><div class="countdown-num" id="cd-hours">--</div><div class="countdown-label">时</div></div>
+      <div class="countdown-item"><div class="countdown-num" id="cd-minutes">--</div><div class="countdown-label">分</div></div>
+      <div class="countdown-item"><div class="countdown-num" id="cd-seconds">--</div><div class="countdown-label">秒</div></div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">🔥</div>
+      <div><div class="stat-value" id="stat-streak">0</div><div class="stat-label">连续打卡天数</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">💰</div>
+      <div><div class="stat-value" id="stat-savings">¥0</div><div class="stat-label">累计存款</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">📝</div>
+      <div><div class="stat-value" id="stat-entries">0</div><div class="stat-label">累计打卡次数</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">🎯</div>
+      <div><div class="stat-value" id="stat-remaining">0</div><div class="stat-label">剩余天数</div></div>
+    </div>
+  </div>
+
+  <!-- Quote & Today's Status -->
+  <div class="home-grid">
+    <div class="quote-card">
+      <div class="quote-mark">"</div>
+      <div class="quote-text" id="daily-quote">现金为王，熊市攒钱、牛市赚钱，等待大机会再出手。</div>
+      <div class="quote-author">— Jack叔叔 · 六年之约</div>
+      <button class="quote-refresh" onclick="refreshQuote()" style="margin-top:12px;">🔄 换一句</button>
+    </div>
+    <div class="card" id="today-status-card">
+      <div class="card-header"><span class="card-title">📌 今日状态</span></div>
+      <div id="today-status-content">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-text">今天还没有打卡<br>去「每日打卡」记录你的三件事吧</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: 每日打卡 -->
+<div class="container tab-content" id="tab-checkin">
+  <div class="card" style="max-width:720px;margin:0 auto;">
+    <div class="card-header">
+      <span class="card-title">✍️ 今日打卡</span>
+      <span style="font-size:14px;color:var(--gray-400)" id="checkin-date"></span>
+    </div>
+    <div id="already-checked-in" style="display:none;text-align:center;padding:24px;">
+      <div style="font-size:48px;margin-bottom:12px;">✅</div>
+      <div style="font-size:18px;font-weight:700;color:var(--green);">今日已完成打卡</div>
+      <div style="font-size:14px;color:var(--gray-400);margin-top:4px;">每一天的坚持都在塑造未来的你</div>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="undoCheckin()">撤销今日打卡</button>
+    </div>
+    <form class="checkin-form" id="checkin-form">
+      <div class="form-group">
+        <label class="form-label">😊 今日心情</label>
+        <div class="mood-selector" id="mood-selector">
+          <button type="button" class="mood-btn" data-mood="great" title="超棒">😄</button>
+          <button type="button" class="mood-btn" data-mood="good" title="不错">😊</button>
+          <button type="button" class="mood-btn selected" data-mood="okay" title="一般">😐</button>
+          <button type="button" class="mood-btn" data-mood="bad" title="不太好">😔</button>
+          <button type="button" class="mood-btn" data-mood="terrible" title="很糟糕">😢</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span class="emoji">🌟</span> 一件开心/积极的事</label>
+        <textarea class="form-textarea" id="input-happy" placeholder="今天发生了什么让你开心的事？学到了什么？有什么进步？" maxlength="500"></textarea>
+        <span style="font-size:11px;color:var(--gray-400);text-align:right;"><span id="happy-count">0</span>/500</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span class="emoji">💪</span> 一件难过/挑战的事</label>
+        <textarea class="form-textarea" id="input-challenge" placeholder="今天遇到了什么困难？从中你学到了什么？" maxlength="500"></textarea>
+        <span style="font-size:11px;color:var(--gray-400);text-align:right;"><span id="challenge-count">0</span>/500</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span class="emoji">💭</span> 今日思考</label>
+        <textarea class="form-textarea" id="input-thoughts" placeholder="今天有什么感悟和思考？对未来的规划？" maxlength="500"></textarea>
+        <span style="font-size:11px;color:var(--gray-400);text-align:right;"><span id="thoughts-count">0</span>/500</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span class="emoji">💰</span> 当前累计存款 (元)</label>
+        <input type="number" class="form-input" id="input-savings" placeholder="输入你目前的累计存款金额" min="0" step="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span class="emoji">✅</span> 今日习惯</label>
+        <div class="toggle-row">
+          <button type="button" class="toggle-btn" id="toggle-exercise" data-key="exercised">🏃 运动了</button>
+          <button type="button" class="toggle-btn" id="toggle-learn" data-key="learned">📚 学习了</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">📝 完成今日打卡</button>
+    </form>
+  </div>
+</div>
+
+<!-- Tab: 进度总览 -->
+<div class="container tab-content" id="tab-progress">
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+      <span class="card-title" id="savings-target-label">💰 存款进度 · 目标 ¥1,000,000</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="showTargetSettings()" title="自定义目标">⚙️ 调整目标</button>
+        <span style="font-size:14px;font-weight:700;color:var(--blue-600)" id="savings-pct">0%</span>
+      </div>
+    </div>
+    <div class="progress-wrapper">
+      <div class="progress-bar" style="height:20px;border-radius:10px;">
+        <div class="progress-fill" id="savings-bar" style="width:0%;height:100%;border-radius:10px;"></div>
+      </div>
+      <div class="progress-milestones" id="savings-milestones">
+        <span>¥0</span><span>25%</span><span>50%</span><span>75%</span><span>🎯 100%</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin-top:16px;">
+      <div><div style="font-size:24px;font-weight:800;" id="savings-current">¥0</div><div style="font-size:12px;color:var(--gray-400)">当前存款</div></div>
+      <div><div style="font-size:24px;font-weight:800;" id="savings-remaining">¥1,000,000</div><div style="font-size:12px;color:var(--gray-400)">距离目标</div></div>
+      <div><div style="font-size:24px;font-weight:800;" id="savings-monthly">¥13,889</div><div style="font-size:12px;color:var(--gray-400)">建议月存</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+      <span class="card-title">📅 打卡热力图</span>
+      <span style="font-size:13px;color:var(--gray-400)" id="heatmap-range"></span>
+    </div>
+    <div class="heatmap-wrapper">
+      <div class="heatmap" id="heatmap"></div>
+    </div>
+    <div class="heatmap-labels">
+      <span>少</span>
+      <div style="width:14px;height:14px;border-radius:3px;background:var(--gray-100)"></div>
+      <div style="width:14px;height:14px;border-radius:3px;background:#93c5fd"></div>
+      <div style="width:14px;height:14px;border-radius:3px;background:#60a5fa"></div>
+      <div style="width:14px;height:14px;border-radius:3px;background:#3b82f6"></div>
+      <div style="width:14px;height:14px;border-radius:3px;background:#2563eb"></div>
+      <span>多</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">📊 月度统计</span></div>
+    <div id="monthly-stats">
+      <div class="empty-state">
+        <div class="empty-state-icon">📊</div>
+        <div class="empty-state-text">还没有打卡记录<br>开始你的六年之约，数据会在这里展示</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: 日记回顾 -->
+<div class="container tab-content" id="tab-journal">
+  <div class="card" style="margin-bottom:24px;">
+    <div class="journal-filters">
+      <input type="text" class="form-input journal-search" id="journal-search" placeholder="🔍 搜索日记内容...">
+      <select class="journal-select" id="journal-mood-filter">
+        <option value="all">全部心情</option>
+        <option value="great">😄 超棒</option>
+        <option value="good">😊 不错</option>
+        <option value="okay">😐 一般</option>
+        <option value="bad">😔 不太好</option>
+        <option value="terrible">😢 很糟糕</option>
+      </select>
+      <select class="journal-select" id="journal-month-filter">
+        <option value="all">全部月份</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="exportEntries()">📥 导出数据</button>
+    </div>
+    <div id="entry-list" class="entry-list">
+      <div class="empty-state">
+        <div class="empty-state-icon">📖</div>
+        <div class="empty-state-text">还没有日记记录<br>每天打卡后会在这里形成你的成长日记</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: 六年蓝图 -->
+<div class="container tab-content" id="tab-roadmap">
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+      <span class="card-title">🗓️ 72个月 · 六年蓝图</span>
+      <span style="font-size:13px;color:var(--gray-400)">每个格子代表一个月</span>
+    </div>
+    <div class="month-grid" id="month-grid"></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">🏆 成就徽章</span></div>
+    <div class="achievements-grid" id="achievements-grid"></div>
+  </div>
+</div>
+
+<!-- Entry Detail Modal -->
+<div class="modal-overlay" id="modal-overlay" style="display:none;">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script>
+// ========== Constants ==========
+const TARGET_DATE = new Date(2030, 11, 30, 23, 59, 59);
+const DEFAULT_TARGET_AMOUNT = 1000000;
+const START_DATE = new Date(2024, 11, 30);
+const TOTAL_DAYS = Math.ceil((TARGET_DATE - START_DATE) / (1000 * 60 * 60 * 24));
+const TOTAL_MONTHS = 72;
+
+const MOOD_MAP = { great: '😄 超棒', good: '😊 不错', okay: '😐 一般', bad: '😔 不太好', terrible: '😢 很糟糕' };
+const MOOD_EMOJI = { great: '😄', good: '😊', okay: '😐', bad: '😔', terrible: '😢' };
+
+const QUOTES = [
+  { text: '现金为王，熊市攒钱、牛市赚钱，等待大机会再出手。', author: 'Jack叔叔' },
+  { text: '6年之约，不是让你6年必须100万。是让你6年后，不再是现在的你。', author: 'Jack叔叔' },
+  { text: '每天比昨天好一点点。', author: 'Jack叔叔' },
+  { text: '100万不是终点，而是你的第一桶金——它代表你有2-3次试错的机会。', author: 'Jack叔叔' },
+  { text: '年轻人一定要闯，一定要有自己的梦想。', author: 'Jack叔叔' },
+  { text: '去练一个会赚钱的脑子，比什么都重要。', author: 'Jack叔叔' },
+  { text: '6年≈一个完整经济周期。前3年攒本金、练认知；后3年抓住风口重仓。', author: 'Jack叔叔' },
+  { text: '坚持输出，倒逼输入。公开承诺是最好的自律。', author: 'Jack叔叔' },
+  { text: '这不是Jack对你的约定，是你自己对自己的约定。', author: 'Jack叔叔' },
+];
+
+const ACHIEVEMENTS = [
+  { id: 'first-checkin', icon: '🎯', name: '初次打卡', desc: '完成人生第一次六年之约打卡', check: (d) => d.totalEntries >= 1 },
+  { id: 'streak-7', icon: '🔥', name: '连续7天', desc: '连续打卡7天不间断', check: (d) => d.bestStreak >= 7 },
+  { id: 'streak-30', icon: '⭐', name: '月度坚持', desc: '连续打卡30天', check: (d) => d.bestStreak >= 30 },
+  { id: 'streak-100', icon: '💎', name: '百日筑基', desc: '连续打卡100天', check: (d) => d.bestStreak >= 100 },
+  { id: 'streak-365', icon: '👑', name: '一年之约', desc: '连续打卡365天', check: (d) => d.bestStreak >= 365 },
+  { id: 'entries-50', icon: '📝', name: '50篇日记', desc: '累计打卡50次', check: (d) => d.totalEntries >= 50 },
+  { id: 'entries-200', icon: '📚', name: '200篇日记', desc: '累计打卡200次', check: (d) => d.totalEntries >= 200 },
+  { id: 'entries-500', icon: '🏛️', name: '500篇日记', desc: '累计打卡500次', check: (d) => d.totalEntries >= 500 },
+  { id: 'savings-10k', icon: '💵', name: '存够1万', desc: '累计存款达到1万元', check: (d) => d.totalSavings >= 10000 },
+  { id: 'savings-100k', icon: '💎', name: '存够10万', desc: '累计存款达到10万元', check: (d) => d.totalSavings >= 100000 },
+  { id: 'savings-500k', icon: '🏆', name: '存够50万', desc: '累计存款达到50万元', check: (d) => d.totalSavings >= 500000 },
+  { id: 'savings-1m', icon: '🎉', name: '目标达成', desc: '达成你的存款目标！', check: (d) => d.totalSavings >= getTargetAmount() },
+  { id: 'year-1', icon: '🌱', name: '第一年', desc: '坚持满一整年', check: (d) => d.activeDays >= 365 },
+  { id: 'year-3', icon: '🌳', name: '第三年', desc: '坚持满三年', check: (d) => d.activeDays >= 1095 },
+  { id: 'year-6', icon: '🏔️', name: '六年圆满', desc: '完成六年之约！', check: (d) => d.activeDays >= TOTAL_DAYS },
+  { id: 'mood-master', icon: '🌈', name: '情绪大师', desc: '每种心情都记录过', check: (d) => d.allMoods.size >= 5 },
+];
+
+// ========== Supabase Client ==========
+let SB = null;
+let SB_CONFIG = null;
+
+function getSupabaseConfig() {
+  try {
+    const raw = localStorage.getItem('sixYearSupabaseConfig');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function initSupabase() {
+  SB_CONFIG = getSupabaseConfig();
+  if (SB_CONFIG && SB_CONFIG.url && SB_CONFIG.key) {
+    try {
+      SB = supabase.createClient(SB_CONFIG.url, SB_CONFIG.key);
+      return true;
+    } catch (e) {
+      console.error('Supabase init error:', e);
+      return false;
+    }
+  }
+  return false;
+}
+
+function isLoggedIn() {
+  return SB && SB_CONFIG && localStorage.getItem('sb-session');
+}
+
+async function getSession() {
+  if (!SB) return null;
+  try {
+    const { data } = await SB.auth.getSession();
+    return data.session;
+  } catch (e) { return null; }
+}
+
+async function refreshSession() {
+  const session = await getSession();
+  const loggedIn = !!session;
+  if (loggedIn) {
+    localStorage.setItem('sb-session', JSON.stringify({ user: session.user }));
+  } else {
+    localStorage.removeItem('sb-session');
+  }
+  updateUserUI();
+  return loggedIn;
+}
+
+// ========== Data Store (localStorage + Supabase sync) ==========
+function getData() {
+  try {
+    const raw = localStorage.getItem('sixYearPromise');
+    return raw ? JSON.parse(raw) : { entries: {} };
+  } catch (e) { return { entries: {} }; }
+}
+
+function saveData(data) {
+  localStorage.setItem('sixYearPromise', JSON.stringify(data));
+  syncToCloud(data);
+}
+
+async function syncToCloud(data) {
+  if (!isLoggedIn()) return;
+  // Sync happens in background, don't block UI
+  try {
+    const entries = Object.entries(data.entries);
+    for (const [date, entry] of entries) {
+      await SB.from('entries').upsert({
+        user_id: (await getSession()).user.id,
+        date,
+        mood: entry.mood,
+        happy: entry.happy || '',
+        challenge: entry.challenge || '',
+        thoughts: entry.thoughts || '',
+        savings: entry.savings || 0,
+        exercised: entry.exercised || false,
+        learned: entry.learned || false,
+      }, { onConflict: 'user_id,date' });
+    }
+  } catch (e) {
+    console.error('Sync error:', e);
+  }
+}
+
+async function pullFromCloud() {
+  if (!isLoggedIn()) return null;
+  try {
+    const { data, error } = await SB.from('entries').select('*').order('date', { ascending: false });
+    if (error) throw error;
+    const entries = {};
+    for (const row of data) {
+      entries[row.date] = {
+        mood: row.mood,
+        happy: row.happy || '',
+        challenge: row.challenge || '',
+        thoughts: row.thoughts || '',
+        savings: row.savings || 0,
+        exercised: row.exercised || false,
+        learned: row.learned || false,
+        timestamp: row.created_at,
+      };
+    }
+    return { entries };
+  } catch (e) {
+    console.error('Pull error:', e);
+    return null;
+  }
+}
+
+async function pushLocalToCloud() {
+  if (!isLoggedIn()) return;
+  const localData = getData();
+  if (Object.keys(localData.entries).length === 0) return;
+  try {
+    const session = await getSession();
+    if (!session) return;
+    for (const [date, entry] of Object.entries(localData.entries)) {
+      await SB.from('entries').upsert({
+        user_id: session.user.id,
+        date,
+        mood: entry.mood,
+        happy: entry.happy || '',
+        challenge: entry.challenge || '',
+        thoughts: entry.thoughts || '',
+        savings: entry.savings || 0,
+        exercised: entry.exercised || false,
+        learned: entry.learned || false,
+      }, { onConflict: 'user_id,date' });
+    }
+  } catch (e) { console.error('Push error:', e); }
+}
+
+async function mergeCloudData() {
+  if (!isLoggedIn()) return;
+  showToast('🔄 正在同步云端数据...');
+  const cloudData = await pullFromCloud();
+  if (!cloudData) {
+    // No cloud data, push local
+    await pushLocalToCloud();
+    showToast('✅ 已同步本地数据到云端');
+    return;
+  }
+  const localData = getData();
+  // Merge: cloud wins for same date
+  const merged = { entries: { ...localData.entries, ...cloudData.entries } };
+  saveDataRaw(merged);
+  // Push merged back to ensure cloud has everything
+  await pushLocalToCloud();
+  showToast('✅ 数据同步完成');
+}
+
+function saveDataRaw(data) {
+  localStorage.setItem('sixYearPromise', JSON.stringify(data));
+}
+
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function getEntry(date) {
+  const data = getData();
+  return data.entries[date] || null;
+}
+
+function saveEntry(date, entry) {
+  const data = getData();
+  data.entries[date] = entry;
+  saveData(data);
+}
+
+function deleteEntry(date) {
+  const data = getData();
+  delete data.entries[date];
+  saveData(data);
+  // Also delete from cloud
+  if (isLoggedIn()) {
+    (async () => {
+      try {
+        const session = await getSession();
+        if (session) await SB.from('entries').delete().eq('user_id', session.user.id).eq('date', date);
+      } catch (e) {}
+    })();
+  }
+}
+
+function getAllEntries() {
+  const data = getData();
+  return Object.entries(data.entries)
+    .map(([date, e]) => ({ date, ...e }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function getStats() {
+  const entries = getAllEntries();
+  if (entries.length === 0) {
+    return { totalEntries: 0, totalSavings: 0, currentStreak: 0, bestStreak: 0, activeDays: 0, allMoods: new Set(), monthlyData: {} };
+  }
+
+  const totalSavings = entries[0].savings || 0;
+
+  const today = new Date();
+  const todayStr = getToday();
+  let currentStreak = 0;
+  let bestStreak = 0;
+  let tempStreak = 0;
+
+  const dates = Object.keys(getData().entries).sort();
+  const dateSet = new Set(dates);
+
+  let checkDate = new Date(today);
+  while (true) {
+    const ds = checkDate.toISOString().split('T')[0];
+    if (dateSet.has(ds)) {
+      currentStreak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      if (ds === todayStr) {
+        checkDate.setDate(checkDate.getDate() - 1);
+        continue;
+      }
+      break;
+    }
+  }
+
+  let allDates = Array.from(dateSet).sort();
+  for (let i = 0; i < allDates.length; i++) {
+    if (i === 0) {
+      tempStreak = 1;
+    } else {
+      const prev = new Date(allDates[i - 1]);
+      const curr = new Date(allDates[i]);
+      const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        tempStreak++;
+      } else {
+        bestStreak = Math.max(bestStreak, tempStreak);
+        tempStreak = 1;
+      }
+    }
+  }
+  bestStreak = Math.max(bestStreak, tempStreak);
+
+  const allMoods = new Set(entries.map(e => e.mood));
+  const activeDays = dateSet.size;
+
+  const monthlyData = {};
+  entries.forEach(e => {
+    const month = e.date.substring(0, 7);
+    if (!monthlyData[month]) monthlyData[month] = { count: 0, savings: 0 };
+    monthlyData[month].count++;
+    monthlyData[month].savings = Math.max(monthlyData[month].savings, e.savings || 0);
+  });
+
+  return {
+    totalEntries: entries.length,
+    totalSavings,
+    currentStreak,
+    bestStreak,
+    activeDays,
+    allMoods,
+    monthlyData,
+  };
+}
+
+// ========== Supabase Settings Sync ==========
+async function pullSettings() {
+  if (!isLoggedIn()) return null;
+  try {
+    const { data, error } = await SB.from('user_settings').select('*').single();
+    if (error || !data) return null;
+    if (data.target_amount) {
+      localStorage.setItem('sixYearTarget', data.target_amount.toString());
+    }
+    return data;
+  } catch (e) { return null; }
+}
+
+async function pushSettings() {
+  if (!isLoggedIn()) return;
+  try {
+    const session = await getSession();
+    if (!session) return;
+    const target = getTargetAmount();
+    await SB.from('user_settings').upsert({
+      user_id: session.user.id,
+      target_amount: target,
+    }, { onConflict: 'user_id' });
+  } catch (e) {}
+}
+
+// ========== Auth Functions ==========
+async function handleLogin(e) {
+  e.preventDefault();
+  if (!SB) { showAuthError('请先配置 Supabase 连接信息'); return; }
+  hideAuthMessages();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  try {
+    const { data, error } = await SB.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    await onAuthSuccess(data);
+  } catch (err) {
+    showAuthError(err.message || '登录失败');
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  if (!SB) { showAuthError('请先配置 Supabase 连接信息'); return; }
+  hideAuthMessages();
+  const email = document.getElementById('register-email').value.trim();
+  const password = document.getElementById('register-password').value;
+  try {
+    const { data, error } = await SB.auth.signUp({ email, password });
+    if (error) throw error;
+    if (data.user && data.session) {
+      await onAuthSuccess(data);
+    } else {
+      showAuthSuccess('注册成功！请检查邮箱确认链接（部分项目可能不需要确认）。');
+    }
+  } catch (err) {
+    showAuthError(err.message || '注册失败');
+  }
+}
+
+async function onAuthSuccess(data) {
+  localStorage.setItem('sb-session', JSON.stringify({ user: data.user }));
+  closeAuth();
+  updateUserUI();
+  await pushLocalToCloud();
+  await mergeCloudData();
+  await pullSettings();
+  refreshAll();
+  const email = data.user.email;
+  showToast('✅ 已登录: ' + email + ' | 数据已同步');
+}
+
+async function handleLogout() {
+  if (!confirm('确定要退出账号吗？\n本地数据不会丢失，但将停止云同步。')) return;
+  if (SB) {
+    try { await SB.auth.signOut(); } catch (e) {}
+  }
+  localStorage.removeItem('sb-session');
+  updateUserUI();
+  showToast('👋 已退出账号，数据保留在本地');
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showAuthSuccess(msg) {
+  const el = document.getElementById('auth-success');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideAuthMessages() {
+  document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+}
+
+function handleUserClick() {
+  if (isLoggedIn()) {
+    if (confirm('已登录账号。\n\n选择"确定"退出账号，或"取消"继续。')) {
+      handleLogout();
+    }
+  } else {
+    if (!getSupabaseConfig()) {
+      showSetupOverlay();
+    } else {
+      showAuthOverlay();
+    }
+  }
+}
+
+function showAuthOverlay() {
+  initSupabaseIfNeeded();
+  document.getElementById('auth-overlay').style.display = 'flex';
+  hideAuthMessages();
+  switchAuthTab('login');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('register-email').value = '';
+  document.getElementById('register-password').value = '';
+}
+
+function closeAuth() {
+  document.getElementById('auth-overlay').style.display = 'none';
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('auth-tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('auth-form-login').style.display = tab === 'login' ? 'flex' : 'none';
+  document.getElementById('auth-form-register').style.display = tab === 'register' ? 'flex' : 'none';
+  document.getElementById('auth-switch-text').textContent = tab === 'login' ? '还没有账号？' : '已有账号？';
+  document.getElementById('auth-switch-link').textContent = tab === 'login' ? '立即注册' : '去登录';
+  document.getElementById('auth-switch-link').onclick = () => switchAuthTab(tab === 'login' ? 'register' : 'login');
+  hideAuthMessages();
+}
+
+function initSupabaseIfNeeded() {
+  if (!SB && getSupabaseConfig()) {
+    initSupabase();
+  }
+}
+
+// ========== Setup Screen ==========
+function showSetupOverlay() {
+  document.getElementById('setup-overlay').style.display = 'flex';
+  const config = getSupabaseConfig();
+  if (config) {
+    document.getElementById('setup-url').value = config.url || '';
+    document.getElementById('setup-key').value = config.key || '';
+  }
+}
+
+function skipSetup() {
+  SB = null;
+  SB_CONFIG = null;
+  document.getElementById('setup-overlay').style.display = 'none';
+  showToast('已跳过云同步，数据仅保存在本地');
+}
+
+function saveSetup() {
+  const url = document.getElementById('setup-url').value.trim();
+  const key = document.getElementById('setup-key').value.trim();
+  if (!url || !key) {
+    showToast('请填写 Supabase URL 和 anon key');
+    return;
+  }
+  const config = { url, key };
+  localStorage.setItem('sixYearSupabaseConfig', JSON.stringify(config));
+  const ok = initSupabase();
+  if (!ok) {
+    showToast('Supabase 初始化失败，请检查 URL 和 Key');
+    return;
+  }
+  document.getElementById('setup-overlay').style.display = 'none';
+  showToast('✅ Supabase 已连接！请登录或注册账号');
+  setTimeout(() => showAuthOverlay(), 500);
+}
+
+function copySQL() {
+  const sql = document.getElementById('setup-sql').textContent;
+  navigator.clipboard.writeText(sql).then(() => {
+    showToast('📋 SQL 已复制，请粘贴到 Supabase SQL Editor 运行');
+  }).catch(() => {
+    showToast('复制失败，请手动选择 SQL 文本');
+  });
+}
+
+// ========== Update User UI ==========
+function updateUserUI() {
+  const btn = document.getElementById('nav-user-btn');
+  const label = document.getElementById('nav-user-label');
+  if (isLoggedIn()) {
+    btn.classList.add('logged-in');
+    try {
+      const sessionData = JSON.parse(localStorage.getItem('sb-session'));
+      if (sessionData && sessionData.user) {
+        const email = sessionData.user.email || '用户';
+        label.textContent = email.split('@')[0];
+      }
+    } catch (e) { label.textContent = '已登录'; }
+    btn.title = '点击退出账号';
+  } else {
+    btn.classList.remove('logged-in');
+    label.textContent = '账号';
+    btn.title = '登录/注册账号';
+  }
+}
+
+// ========== Countdown Timer ==========
+function updateCountdown() {
+  const now = new Date();
+  let diff = TARGET_DATE - now;
+
+  if (diff <= 0) {
+    ['years','months','days','hours','minutes','seconds'].forEach(u => {
+      document.getElementById('cd-' + u).textContent = '0';
+    });
+    return;
+  }
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+
+  const seconds = totalSeconds % 60;
+  const minutes = totalMinutes % 60;
+  const hours = totalHours % 24;
+
+  const years = Math.floor(totalDays / 365.25);
+  const remainingAfterYears = totalDays - Math.floor(years * 365.25);
+  const months = Math.floor(remainingAfterYears / 30.44);
+  const remainingAfterMonths = Math.floor(remainingAfterYears - months * 30.44);
+
+  document.getElementById('cd-years').textContent = years;
+  document.getElementById('cd-months').textContent = months;
+  document.getElementById('cd-days').textContent = Math.max(0, remainingAfterMonths);
+  document.getElementById('cd-hours').textContent = hours;
+  document.getElementById('cd-minutes').textContent = minutes;
+  document.getElementById('cd-seconds').textContent = seconds;
+
+  const totalJourney = TARGET_DATE - START_DATE;
+  const elapsed = new Date() - START_DATE;
+  const timePct = Math.min(100, Math.max(0, (elapsed / totalJourney) * 100));
+  document.getElementById('time-progress-pct').textContent = timePct.toFixed(1) + '%';
+  document.getElementById('time-progress-bar').style.width = timePct + '%';
+}
+
+// ========== Home Tab ==========
+function updateHomeTab() {
+  const stats = getStats();
+  const today = getToday();
+  const entry = getEntry(today);
+
+  document.getElementById('stat-streak').textContent = stats.currentStreak;
+  document.getElementById('stat-savings').textContent = '¥' + stats.totalSavings.toLocaleString();
+  document.getElementById('stat-entries').textContent = stats.totalEntries;
+
+  const remainingDays = Math.max(0, Math.ceil((TARGET_DATE - new Date()) / (1000 * 60 * 60 * 24)));
+  document.getElementById('stat-remaining').textContent = remainingDays;
+
+  const statusDiv = document.getElementById('today-status-content');
+  if (entry) {
+    const moodEmoji = MOOD_EMOJI[entry.mood] || '😐';
+    statusDiv.innerHTML = `
+      <div style="text-align:center;padding:8px 0;">
+        <div style="font-size:36px;margin-bottom:8px;">${moodEmoji}</div>
+        <div style="font-weight:700;font-size:15px;color:var(--green);">今日已打卡</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+          ${entry.happy ? `<div style="background:#f0fdf4;padding:8px 12px;border-radius:8px;font-size:13px;text-align:left;"><span style="color:var(--green);">🌟</span> ${escapeHtml(entry.happy.substring(0, 60))}${entry.happy.length > 60 ? '...' : ''}</div>` : ''}
+          ${entry.challenge ? `<div style="background:#fffbeb;padding:8px 12px;border-radius:8px;font-size:13px;text-align:left;"><span style="color:var(--amber);">💪</span> ${escapeHtml(entry.challenge.substring(0, 60))}${entry.challenge.length > 60 ? '...' : ''}</div>` : ''}
+          ${entry.thoughts ? `<div style="background:#eff6ff;padding:8px 12px;border-radius:8px;font-size:13px;text-align:left;"><span style="color:var(--blue-600);">💭</span> ${escapeHtml(entry.thoughts.substring(0, 60))}${entry.thoughts.length > 60 ? '...' : ''}</div>` : ''}
+        </div>
+        ${entry.savings ? `<div style="margin-top:12px;font-size:14px;color:var(--gray-500);">💰 存款: ¥${entry.savings.toLocaleString()}</div>` : ''}
+      </div>
+    `;
+  } else {
+    statusDiv.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-text">今天还没有打卡<br>去「每日打卡」记录你的三件事吧</div>
+      </div>
+    `;
+  }
+
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  const quote = QUOTES[dayOfYear % QUOTES.length];
+  document.getElementById('daily-quote').textContent = quote.text;
+  document.querySelector('.quote-author').textContent = '— ' + quote.author + ' · 六年之约';
+}
+
+// ========== Check-in Tab ==========
+let selectedMood = 'okay';
+let exerciseOn = false;
+let learnOn = false;
+
+function updateCheckinTab() {
+  const today = getToday();
+  document.getElementById('checkin-date').textContent = today;
+
+  const entry = getEntry(today);
+  const form = document.getElementById('checkin-form');
+  const alreadyDiv = document.getElementById('already-checked-in');
+
+  if (entry) {
+    form.style.display = 'none';
+    alreadyDiv.style.display = 'block';
+  } else {
+    form.style.display = 'flex';
+    alreadyDiv.style.display = 'none';
+  }
+
+  if (!entry) {
+    const allEntries = getAllEntries();
+    if (allEntries.length > 0) {
+      const lastEntry = allEntries[0];
+      if (lastEntry.savings && !document.getElementById('input-savings').value) {
+        document.getElementById('input-savings').value = lastEntry.savings;
+      }
+    }
+  }
+}
+
+function initMoodSelector() {
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedMood = btn.dataset.mood;
+    });
+  });
+}
+
+function initToggles() {
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('on');
+      if (btn.dataset.key === 'exercised') exerciseOn = btn.classList.contains('on');
+      if (btn.dataset.key === 'learned') learnOn = btn.classList.contains('on');
+    });
+  });
+}
+
+function initCharCounters() {
+  ['happy', 'challenge', 'thoughts'].forEach(field => {
+    const input = document.getElementById('input-' + field);
+    const counter = document.getElementById(field + '-count');
+    input.addEventListener('input', () => {
+      counter.textContent = input.value.length;
+    });
+  });
+}
+
+function handleCheckin(e) {
+  e.preventDefault();
+  const today = getToday();
+
+  if (getEntry(today)) {
+    showToast('今日已经打卡过了');
+    return;
+  }
+
+  const happy = document.getElementById('input-happy').value.trim();
+  const challenge = document.getElementById('input-challenge').value.trim();
+  const thoughts = document.getElementById('input-thoughts').value.trim();
+  const savingsInput = document.getElementById('input-savings').value;
+
+  if (!happy && !challenge && !thoughts) {
+    showToast('请至少填写一项内容再打卡');
+    return;
+  }
+
+  const entry = {
+    mood: selectedMood,
+    happy,
+    challenge,
+    thoughts,
+    savings: savingsInput ? parseInt(savingsInput) : 0,
+    exercised: exerciseOn,
+    learned: learnOn,
+    timestamp: new Date().toISOString(),
+  };
+
+  saveEntry(today, entry);
+
+  document.getElementById('input-happy').value = '';
+  document.getElementById('input-challenge').value = '';
+  document.getElementById('input-thoughts').value = '';
+  document.getElementById('happy-count').textContent = '0';
+  document.getElementById('challenge-count').textContent = '0';
+  document.getElementById('thoughts-count').textContent = '0';
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('[data-mood="okay"]').classList.add('selected');
+  selectedMood = 'okay';
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on'));
+  exerciseOn = false;
+  learnOn = false;
+
+  showToast('✅ 打卡成功！每一天的坚持都在塑造未来的你');
+  refreshAll();
+}
+
+function undoCheckin() {
+  if (!confirm('确定要撤销今日的打卡记录吗？此操作不可恢复。')) return;
+  deleteEntry(getToday());
+  showToast('已撤销今日打卡');
+  refreshAll();
+}
+
+// ========== Progress Tab ==========
+function updateProgressTab() {
+  const stats = getStats();
+
+  const target = getTargetAmount();
+  const pct = Math.min(100, (stats.totalSavings / target) * 100);
+  document.getElementById('savings-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('savings-bar').style.width = pct + '%';
+  if (pct >= 100) {
+    document.getElementById('savings-bar').classList.add('goal-reached');
+  } else {
+    document.getElementById('savings-bar').classList.remove('goal-reached');
+  }
+  document.getElementById('savings-current').textContent = '¥' + stats.totalSavings.toLocaleString();
+  document.getElementById('savings-remaining').textContent = '¥' + Math.max(0, target - stats.totalSavings).toLocaleString();
+  document.getElementById('savings-monthly').textContent = '¥' + Math.ceil((target - stats.totalSavings) / Math.max(1, (TARGET_DATE - new Date()) / (1000 * 60 * 60 * 24 * 30.44))).toLocaleString();
+  document.getElementById('savings-target-label').textContent = '💰 存款进度 · 目标 ¥' + target.toLocaleString();
+
+  renderHeatmap();
+  renderMonthlyStats(stats);
+}
+
+function renderHeatmap() {
+  const heatmap = document.getElementById('heatmap');
+  const entries = getData().entries;
+  const today = new Date();
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+  document.getElementById('heatmap-range').textContent =
+    oneYearAgo.toLocaleDateString('zh-CN') + ' — ' + today.toLocaleDateString('zh-CN');
+
+  const startDate = new Date(oneYearAgo);
+  startDate.setDate(startDate.getDate() - startDate.getDay());
+
+  const weeks = [];
+  let currentWeek = [];
+  let d = new Date(startDate);
+
+  for (let i = 0; i < 371; i++) {
+    if (currentWeek.length === 7) {
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+    const ds = d.toISOString().split('T')[0];
+    const count = entries[ds] ? 1 : 0;
+    currentWeek.push({ date: ds, count });
+    d.setDate(d.getDate() + 1);
+  }
+  if (currentWeek.length > 0) weeks.push(currentWeek);
+
+  let html = '';
+  for (const week of weeks) {
+    html += '<div class="heatmap-col">';
+    for (const day of week) {
+      let cls = 'heatmap-cell';
+      if (day.count > 0) cls += ' l2';
+      html += `<div class="${cls}" title="${day.date}" data-date="${day.date}"></div>`;
+    }
+    html += '</div>';
+  }
+  heatmap.innerHTML = html;
+}
+
+function renderMonthlyStats(stats) {
+  const container = document.getElementById('monthly-stats');
+  const months = Object.keys(stats.monthlyData).sort().reverse();
+
+  if (months.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">还没有打卡记录<br>开始你的六年之约，数据会在这里展示</div></div>`;
+    return;
+  }
+
+  let html = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:14px;">';
+  html += '<thead><tr style="border-bottom:2px solid var(--gray-200);">';
+  html += '<th style="text-align:left;padding:12px 8px;">月份</th>';
+  html += '<th style="text-align:center;padding:12px 8px;">打卡天数</th>';
+  html += '<th style="text-align:center;padding:12px 8px;">打卡率</th>';
+  html += '<th style="text-align:right;padding:12px 8px;">月末存款</th>';
+  html += '</tr></thead><tbody>';
+
+  for (const month of months.slice(0, 24)) {
+    const data = stats.monthlyData[month];
+    const [y, m] = month.split('-');
+    const daysInMonth = new Date(parseInt(y), parseInt(m), 0).getDate();
+    const rate = Math.round((data.count / daysInMonth) * 100);
+    html += `<tr style="border-bottom:1px solid var(--gray-100);">`;
+    html += `<td style="padding:12px 8px;font-weight:600;">${month}</td>`;
+    html += `<td style="text-align:center;padding:12px 8px;">${data.count}/${daysInMonth}</td>`;
+    html += `<td style="text-align:center;padding:12px 8px;">`;
+    html += `<div style="display:flex;align-items:center;gap:8px;justify-content:center;">`;
+    html += `<div style="flex:1;max-width:100px;height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;">`;
+    html += `<div style="width:${rate}%;height:100%;background:${rate >= 80 ? 'var(--green)' : rate >= 50 ? 'var(--blue-500)' : 'var(--amber)'};border-radius:3px;"></div>`;
+    html += `</div><span style="font-size:12px;font-weight:600;">${rate}%</span></div></td>`;
+    html += `<td style="text-align:right;padding:12px 8px;font-weight:600;color:var(--green);">¥${data.savings.toLocaleString()}</td>`;
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+// ========== Journal Tab ==========
+function updateJournalTab() {
+  const entries = getAllEntries();
+  const searchTerm = (document.getElementById('journal-search').value || '').toLowerCase();
+  const moodFilter = document.getElementById('journal-mood-filter').value;
+  const monthFilter = document.getElementById('journal-month-filter').value;
+
+  const months = [...new Set(entries.map(e => e.date.substring(0, 7)))];
+  const monthSelect = document.getElementById('journal-month-filter');
+  const currentVal = monthSelect.value;
+  monthSelect.innerHTML = '<option value="all">全部月份</option>' +
+    months.map(m => `<option value="${m}" ${m === currentVal ? 'selected' : ''}>${m}</option>`).join('');
+
+  let filtered = entries;
+  if (searchTerm) {
+    filtered = filtered.filter(e =>
+      (e.happy || '').toLowerCase().includes(searchTerm) ||
+      (e.challenge || '').toLowerCase().includes(searchTerm) ||
+      (e.thoughts || '').toLowerCase().includes(searchTerm)
+    );
+  }
+  if (moodFilter !== 'all') filtered = filtered.filter(e => e.mood === moodFilter);
+  if (monthFilter !== 'all') filtered = filtered.filter(e => e.date.startsWith(monthFilter));
+
+  const listDiv = document.getElementById('entry-list');
+  if (filtered.length === 0) {
+    listDiv.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📖</div><div class="empty-state-text">${entries.length === 0 ? '还没有日记记录' : '没有匹配的记录'}</div></div>`;
+    return;
+  }
+
+  listDiv.innerHTML = filtered.map(e => {
+    const moodEmoji = MOOD_EMOJI[e.mood] || '😐';
+    const tags = [];
+    if (e.happy) tags.push('<span class="entry-tag happy">🌟 开心事</span>');
+    if (e.challenge) tags.push('<span class="entry-tag challenge">💪 挑战</span>');
+    if (e.thoughts) tags.push('<span class="entry-tag thought">💭 思考</span>');
+    if (e.exercised) tags.push('<span class="entry-tag" style="background:#dbeafe;color:#1e40af;">🏃 运动</span>');
+    if (e.learned) tags.push('<span class="entry-tag" style="background:#ede9fe;color:#6d28d9;">📚 学习</span>');
+
+    const preview = [e.happy, e.challenge, e.thoughts].filter(Boolean).join(' | ');
+
+    return `
+      <div class="entry-card" onclick="openEntryDetail('${e.date}')">
+        <div class="entry-header">
+          <span class="entry-date">${e.date}</span>
+          <span class="entry-mood">${moodEmoji}</span>
+          <span style="font-size:12px;color:var(--gray-400);">${MOOD_MAP[e.mood] || ''}</span>
+          ${e.savings ? `<span style="margin-left:auto;font-size:13px;font-weight:600;color:var(--green);">💰 ¥${e.savings.toLocaleString()}</span>` : ''}
+        </div>
+        <div class="entry-tags">${tags.join('')}</div>
+        ${preview ? `<div class="entry-preview" style="margin-top:8px;">${escapeHtml(preview.substring(0, 200))}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function openEntryDetail(date) {
+  const entry = getEntry(date);
+  if (!entry) return;
+
+  const moodEmoji = MOOD_EMOJI[entry.mood] || '😐';
+  const html = `
+    <div class="modal-title">${date} ${moodEmoji}</div>
+    ${entry.happy ? `<div class="modal-section"><div class="modal-section-label">🌟 开心/积极的事</div><div class="modal-section-content">${escapeHtml(entry.happy)}</div></div>` : ''}
+    ${entry.challenge ? `<div class="modal-section"><div class="modal-section-label">💪 难过/挑战的事</div><div class="modal-section-content">${escapeHtml(entry.challenge)}</div></div>` : ''}
+    ${entry.thoughts ? `<div class="modal-section"><div class="modal-section-label">💭 今日思考</div><div class="modal-section-content">${escapeHtml(entry.thoughts)}</div></div>` : ''}
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:14px;color:var(--gray-500);">
+      ${entry.savings ? `<span>💰 存款: ¥${entry.savings.toLocaleString()}</span>` : ''}
+      ${entry.exercised ? '<span>🏃 运动了</span>' : ''}
+      ${entry.learned ? '<span>📚 学习了</span>' : ''}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="editEntry('${date}')">✏️ 编辑</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEntryConfirm('${date}')">🗑️ 删除</button>
+      <button class="btn btn-primary btn-sm" onclick="closeModal()">关闭</button>
+    </div>
+  `;
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function editEntry(date) {
+  const entry = getEntry(date);
+  if (!entry) return;
+
+  const newHappy = prompt('开心/积极的事:', entry.happy || '');
+  if (newHappy === null) return;
+  const newChallenge = prompt('难过/挑战的事:', entry.challenge || '');
+  if (newChallenge === null) return;
+  const newThoughts = prompt('今日思考:', entry.thoughts || '');
+  if (newThoughts === null) return;
+
+  entry.happy = newHappy.trim();
+  entry.challenge = newChallenge.trim();
+  entry.thoughts = newThoughts.trim();
+  saveEntry(date, entry);
+  closeModal();
+  refreshAll();
+  showToast('✅ 日记已更新');
+}
+
+function deleteEntryConfirm(date) {
+  if (!confirm('确定要删除 ' + date + ' 的打卡记录吗？此操作不可恢复。')) return;
+  deleteEntry(date);
+  closeModal();
+  refreshAll();
+  showToast('已删除打卡记录');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function exportEntries() {
+  const entries = getAllEntries();
+  if (entries.length === 0) {
+    showToast('没有可导出的数据');
+    return;
+  }
+
+  let csv = '日期,心情,开心的事,挑战的事,今日思考,存款,运动,学习\n';
+  for (const e of entries.reverse()) {
+    csv += `${e.date},${e.mood},"${(e.happy || '').replace(/"/g, '""')}","${(e.challenge || '').replace(/"/g, '""')}","${(e.thoughts || '').replace(/"/g, '""')}",${e.savings || 0},${e.exercised ? '是' : '否'},${e.learned ? '是' : '否'}\n`;
+  }
+
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '六年之约_日记_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 数据已导出');
+}
+
+// ========== Roadmap Tab ==========
+function updateRoadmapTab() {
+  const entries = getData().entries;
+
+  const grid = document.getElementById('month-grid');
+  let html = '';
+  const startDate = new Date(2024, 11, 1);
+
+  for (let i = 0; i < TOTAL_MONTHS; i++) {
+    const monthDate = new Date(startDate);
+    monthDate.setMonth(monthDate.getMonth() + i);
+    const monthKey = monthDate.toISOString().substring(0, 7);
+    const now = new Date();
+    const currentMonth = now.toISOString().substring(0, 7);
+
+    const monthEntries = Object.keys(entries).filter(d => d.startsWith(monthKey));
+    const isCompleted = monthEntries.length > 0;
+    const isCurrent = monthKey === currentMonth;
+    const isFuture = monthKey > currentMonth && !isCompleted;
+
+    let monthSavings = 0;
+    if (isCompleted) {
+      const sorted = monthEntries.sort().reverse();
+      const lastEntry = entries[sorted[0]];
+      if (lastEntry && lastEntry.savings) monthSavings = lastEntry.savings;
+    }
+
+    let cls = '';
+    if (isCompleted) cls = 'completed';
+    else if (isCurrent) cls = 'current';
+    else if (isFuture) cls = 'future';
+
+    const monthLabel = `${monthDate.getFullYear()}.${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+    const rate = monthEntries.length > 0 ? Math.round((monthEntries.length / new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate()) * 100) : 0;
+
+    html += `
+      <div class="month-cell ${cls}">
+        <div class="month-num">M${i + 1}</div>
+        <div class="month-label">${monthLabel}</div>
+        ${isCompleted ? `<div class="month-savings">${monthEntries.length}天打卡</div>` : ''}
+        ${isCurrent ? '<div class="month-savings" style="color:var(--blue-600);">进行中</div>' : ''}
+        <div class="month-rate">${isCompleted ? rate + '%' : isFuture ? '待开启' : isCurrent ? '进行中' : ''}</div>
+      </div>
+    `;
+  }
+  grid.innerHTML = html;
+
+  const stats = getStats();
+  const achievementData = {
+    totalEntries: stats.totalEntries,
+    bestStreak: stats.bestStreak,
+    totalSavings: stats.totalSavings,
+    activeDays: stats.activeDays,
+    allMoods: stats.allMoods,
+  };
+
+  const achievementsGrid = document.getElementById('achievements-grid');
+  achievementsGrid.innerHTML = ACHIEVEMENTS.map(a => {
+    const earned = a.check(achievementData);
+    return `
+      <div class="achievement-card ${earned ? 'earned' : 'locked'}">
+        <div class="achievement-icon">${a.icon}</div>
+        <div class="achievement-name">${a.name}</div>
+        <div class="achievement-desc">${a.desc}</div>
+        ${earned ? '<div style="font-size:12px;color:var(--amber);margin-top:4px;">⭐ 已达成</div>' : '<div style="font-size:12px;color:var(--gray-300);margin-top:4px;">🔒 未解锁</div>'}
+      </div>
+    `;
+  }).join('');
+}
+
+// ========== Utilities ==========
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+function refreshQuote() {
+  const idx = Math.floor(Math.random() * QUOTES.length);
+  document.getElementById('daily-quote').textContent = QUOTES[idx].text;
+  document.querySelector('.quote-author').textContent = '— ' + QUOTES[idx].author + ' · 六年之约';
+  showToast('🔄 已更新金句');
+}
+
+function showTargetSettings() {
+  const current = getTargetAmount();
+  const input = prompt('设置你的存款目标 (元):', current);
+  if (input === null) return;
+  const amount = parseInt(input);
+  if (isNaN(amount) || amount <= 0) {
+    showToast('请输入有效的金额');
+    return;
+  }
+  setTargetAmount(amount);
+  showToast('✅ 目标已更新为 ¥' + amount.toLocaleString());
+  refreshAll();
+}
+
+function getTargetAmount() {
+  const saved = localStorage.getItem('sixYearTarget');
+  return saved ? parseInt(saved) : DEFAULT_TARGET_AMOUNT;
+}
+
+function setTargetAmount(amount) {
+  localStorage.setItem('sixYearTarget', amount.toString());
+  pushSettings();
+}
+
+// ========== Tab Navigation ==========
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+  const tabEl = document.getElementById('tab-' + tabName);
+  if (tabEl) tabEl.classList.add('active');
+
+  const linkEl = document.querySelector(`[data-tab="${tabName}"]`);
+  if (linkEl) linkEl.classList.add('active');
+
+  if (tabName === 'home') updateHomeTab();
+  if (tabName === 'checkin') updateCheckinTab();
+  if (tabName === 'progress') updateProgressTab();
+  if (tabName === 'journal') updateJournalTab();
+  if (tabName === 'roadmap') updateRoadmapTab();
+}
+
+// ========== Refresh All ==========
+function refreshAll() {
+  updateCountdown();
+  updateHomeTab();
+
+  const activeTab = document.querySelector('.tab-content.active');
+  if (activeTab) {
+    const tabId = activeTab.id.replace('tab-', '');
+    if (tabId === 'checkin') updateCheckinTab();
+    if (tabId === 'progress') updateProgressTab();
+    if (tabId === 'journal') updateJournalTab();
+    if (tabId === 'roadmap') updateRoadmapTab();
+  }
+}
+
+// ========== Init ==========
+async function init() {
+  // Try to init Supabase
+  const hasConfig = !!getSupabaseConfig();
+  if (hasConfig) {
+    initSupabase();
+    // Try to restore session
+    const session = await getSession();
+    if (session) {
+      localStorage.setItem('sb-session', JSON.stringify({ user: session.user }));
+      // Pull latest cloud data in background
+      mergeCloudData().then(() => refreshAll());
+      pullSettings();
+    } else {
+      localStorage.removeItem('sb-session');
+    }
+  }
+  updateUserUI();
+
+  // Tab navigation
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => switchTab(link.dataset.tab));
+  });
+
+  initMoodSelector();
+  initToggles();
+  initCharCounters();
+
+  document.getElementById('checkin-form').addEventListener('submit', handleCheckin);
+
+  document.getElementById('journal-search').addEventListener('input', updateJournalTab);
+  document.getElementById('journal-mood-filter').addEventListener('change', updateJournalTab);
+  document.getElementById('journal-month-filter').addEventListener('change', updateJournalTab);
+
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeAuth();
+    }
+  });
+
+  // Close auth overlay on outside click
+  document.getElementById('auth-overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeAuth();
+  });
+
+  // Initial render
+  updateCountdown();
+  updateHomeTab();
+
+  // Update countdown every second
+  setInterval(updateCountdown, 1000);
+
+  // Auto-refresh when date changes (midnight)
+  setInterval(() => {
+    const today = getToday();
+    if (today !== window._lastDate) {
+      window._lastDate = today;
+      refreshAll();
+    }
+  }, 60000);
+  window._lastDate = getToday();
+
+  // Auto-refresh session every 30 minutes
+  setInterval(async () => {
+    if (hasConfig && SB) {
+      await refreshSession();
+    }
+  }, 1800000);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
