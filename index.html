@@ -532,16 +532,41 @@ input[type="range"] {
 .notes-textarea::placeholder {
   color: #c5b8a8;
 }
-.notes-status {
-  text-align: right;
-  font-size: 12px;
-  color: var(--green);
-  margin-top: 4px;
-  padding-right: 4px;
-  opacity: 0;
-  transition: opacity 0.4s;
+.notes-history {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.notes-status.show { opacity: 1; }
+.notes-history-item {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.notes-history-item .notes-content {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.notes-history-item .notes-meta {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.notes-del-btn {
+  background: none;
+  border: none;
+  color: #c9a88c;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+}
 
 /* ── Affirm Browse Page ── */
 .affirm-tabs {
@@ -686,7 +711,8 @@ input[type="range"] {
     <div class="notes-section" style="margin-top:24px;">
       <div class="section-label">📝 释放心得</div>
       <textarea class="notes-textarea" id="homeNotes" placeholder="记录你的释放感受、心得、或任何当下的想法……"></textarea>
-      <div class="notes-status" id="notesStatus">✓ 已保存</div>
+      <button class="btn btn-primary" id="notesSaveBtn" style="width:100%;margin-top:10px;">保存心得</button>
+      <div class="notes-history" id="notesHistory"></div>
     </div>
   </div>
 
@@ -1911,18 +1937,59 @@ requestNotificationPermission();
 renderHomeAffirmation();
 
 // Notes
-const notesArea = document.getElementById('homeNotes');
-notesArea.value = localStorage.getItem('sedona_notes') || '';
-let notesSaveTimer = null;
-notesArea.addEventListener('input', () => {
-  clearTimeout(notesSaveTimer);
-  notesSaveTimer = setTimeout(() => {
-    localStorage.setItem('sedona_notes', notesArea.value);
-    const status = document.getElementById('notesStatus');
-    status.classList.add('show');
-    setTimeout(() => status.classList.remove('show'), 2000);
-  }, 600);
-});
+function getNotes() {
+  try { return JSON.parse(localStorage.getItem('sedona_notes')) || []; }
+  catch { return []; }
+}
+function saveNotes(notes) {
+  localStorage.setItem('sedona_notes', JSON.stringify(notes));
+}
+
+function renderNotesHistory() {
+  const container = document.getElementById('notesHistory');
+  const notes = getNotes();
+  if (notes.length === 0) {
+    container.innerHTML = notes.length === 0 && !document.getElementById('homeNotes').value
+      ? '' : '';
+    return;
+  }
+  container.innerHTML = notes.map((n, i) => `
+    <div class="notes-history-item">
+      <div class="notes-content">${n.text.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>
+      <div class="notes-meta">
+        <span>${n.date} ${n.time}</span>
+        <button class="notes-del-btn" data-idx="${i}">删除</button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.notes-del-btn').forEach(btn => {
+    btn.onclick = function() {
+      const idx = parseInt(this.dataset.idx);
+      const notes = getNotes();
+      notes.splice(idx, 1);
+      saveNotes(notes);
+      renderNotesHistory();
+    };
+  });
+}
+
+document.getElementById('notesSaveBtn').onclick = () => {
+  const text = document.getElementById('homeNotes').value.trim();
+  if (!text) return;
+  const notes = getNotes();
+  const now = new Date();
+  notes.unshift({
+    text: text,
+    date: fmtDate(now),
+    time: fmtTime(now)
+  });
+  saveNotes(notes);
+  document.getElementById('homeNotes').value = '';
+  renderNotesHistory();
+};
+
+renderNotesHistory();
 </script>
 </body>
 </html>
