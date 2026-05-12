@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>六年之约 · Jack要加油</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
 /* ========== CSS Variables & Reset ========== */
 :root {
@@ -80,7 +80,6 @@ body {
 .nav-link:hover { color: var(--blue-600); background: var(--blue-50); }
 .nav-link.active { color: var(--blue-600); background: var(--blue-100); }
 
-/* User button in nav */
 .nav-user {
   padding: 6px 12px; border-radius: 8px; cursor: pointer;
   font-size: 14px; font-weight: 500; border: 2px solid var(--gray-200);
@@ -98,84 +97,6 @@ body {
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-
-/* ========== Auth Modal ========== */
-.auth-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 250;
-  display: flex; align-items: center; justify-content: center; padding: 24px;
-  animation: fadeIn 0.2s ease;
-}
-.auth-modal {
-  background: var(--white); border-radius: var(--radius-xl);
-  padding: 32px; max-width: 420px; width: 100%;
-  box-shadow: var(--shadow-xl); animation: fadeIn 0.3s ease;
-}
-.auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; background: var(--gray-100); padding: 4px; }
-.auth-tab {
-  flex: 1; padding: 10px; border: none; background: none;
-  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
-  transition: all 0.2s; color: var(--gray-500);
-}
-.auth-tab.active { background: var(--white); color: var(--gray-800); box-shadow: var(--shadow-sm); }
-.auth-form { display: flex; flex-direction: column; gap: 16px; }
-.auth-input {
-  width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200);
-  border-radius: var(--radius); font-size: 14px; font-family: inherit;
-  transition: border-color 0.2s; outline: none;
-}
-.auth-input:focus { border-color: var(--purple); }
-.auth-submit {
-  padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600;
-  cursor: pointer; border: none; color: white;
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  transition: all 0.2s;
-}
-.auth-submit:hover { opacity: 0.9; box-shadow: var(--shadow-md); }
-.auth-switch { text-align: center; font-size: 13px; color: var(--gray-400); margin-top: 8px; }
-.auth-switch a { color: #7c3aed; cursor: pointer; font-weight: 500; }
-.auth-close {
-  position: absolute; top: 12px; right: 16px;
-  background: none; border: none; font-size: 24px; cursor: pointer;
-  color: var(--gray-400); padding: 4px 8px;
-}
-.auth-error { background: #fef2f2; color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
-.auth-success { background: #f0fdf4; color: #065f46; padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
-
-/* ========== Setup Overlay ========== */
-.setup-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300;
-  display: flex; align-items: center; justify-content: center; padding: 24px;
-}
-.setup-card {
-  background: var(--white); border-radius: var(--radius-xl);
-  padding: 32px; max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto;
-  box-shadow: var(--shadow-xl);
-}
-.setup-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
-.setup-desc { font-size: 14px; color: var(--gray-500); margin-bottom: 24px; line-height: 1.6; }
-.setup-steps { margin-bottom: 24px; }
-.setup-step {
-  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;
-  padding: 14px; background: var(--gray-50); border-radius: var(--radius);
-}
-.setup-step-num {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--purple);
-  color: white; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; flex-shrink: 0;
-}
-.setup-step-text { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
-.setup-step-text code { background: var(--gray-200); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
-.setup-sql {
-  background: var(--gray-800); color: #e2e8f0; padding: 14px; border-radius: var(--radius);
-  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;
-  overflow-x: auto; white-space: pre; margin: 8px 0;
-}
-.setup-copy-btn {
-  font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--gray-300);
-  background: var(--white); cursor: pointer; margin-top: 4px;
-}
-.setup-copy-btn:hover { background: var(--gray-50); }
 
 /* ========== Cards ========== */
 .card {
@@ -457,7 +378,6 @@ body {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .stat-value { font-size: 22px; }
   .modal { padding: 20px; }
-  .auth-modal { padding: 20px; }
   .month-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
   .home-grid { grid-template-columns: 1fr; }
 }
@@ -488,108 +408,8 @@ body {
   </div>
 </nav>
 
-<!-- Auth Modal -->
-<div class="auth-overlay" id="auth-overlay" style="display:none;">
-  <div class="auth-modal" style="position:relative;">
-    <button class="auth-close" onclick="closeAuth()">×</button>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">登录</button>
-      <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">注册</button>
-    </div>
-    <div class="auth-error" id="auth-error"></div>
-    <div class="auth-success" id="auth-success"></div>
-    <form class="auth-form" id="auth-form-login" onsubmit="handleLogin(event)">
-      <input type="email" class="auth-input" id="login-email" placeholder="邮箱地址" required autocomplete="email">
-      <input type="password" class="auth-input" id="login-password" placeholder="密码" required autocomplete="current-password" minlength="6">
-      <button type="submit" class="auth-submit">登录</button>
-    </form>
-    <form class="auth-form" id="auth-form-register" style="display:none;" onsubmit="handleRegister(event)">
-      <input type="email" class="auth-input" id="register-email" placeholder="邮箱地址" required autocomplete="email">
-      <input type="password" class="auth-input" id="register-password" placeholder="密码 (至少6位)" required autocomplete="new-password" minlength="6">
-      <button type="submit" class="auth-submit">注册账号</button>
-    </form>
-    <div class="auth-switch" style="margin-top:16px;">
-      <span id="auth-switch-text">还没有账号？</span> <a id="auth-switch-link" onclick="switchAuthTab('register')">立即注册</a>
-    </div>
-  </div>
-</div>
-
-<!-- Supabase Setup Overlay -->
-<div class="setup-overlay" id="setup-overlay" style="display:none;">
-  <div class="setup-card">
-    <div class="setup-title">🔐 配置云同步</div>
-    <div class="setup-desc">连接 Supabase 数据库，让您的六年之约数据在多个设备间同步。只需 2 分钟完成设置。</div>
-    <div class="setup-steps">
-      <div class="setup-step">
-        <div class="setup-step-num">1</div>
-        <div class="setup-step-text">
-          <strong>创建 Supabase 项目</strong><br>
-          打开 <a href="https://supabase.com" target="_blank">supabase.com</a>，注册/登录后点击 "New Project"，创建免费项目。
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="setup-step-num">2</div>
-        <div class="setup-step-text">
-          <strong>创建数据库表</strong><br>
-          在 Supabase 左侧菜单进入 <code>SQL Editor</code>，粘贴以下 SQL 并运行：
-          <div class="setup-sql" id="setup-sql">-- 打卡记录表
-CREATE TABLE IF NOT EXISTS entries (
-  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id UUID REFERENCES auth.users NOT NULL,
-  date DATE NOT NULL,
-  mood TEXT,
-  happy TEXT,
-  challenge TEXT,
-  thoughts TEXT,
-  savings INTEGER DEFAULT 0,
-  exercised BOOLEAN DEFAULT false,
-  learned BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, date)
-);
-
--- 用户设置表
-CREATE TABLE IF NOT EXISTS user_settings (
-  user_id UUID REFERENCES auth.users PRIMARY KEY,
-  target_amount INTEGER DEFAULT 1000000
-);
-
--- 行级安全策略
-ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users manage own entries" ON entries
-  FOR ALL USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users manage own settings" ON user_settings
-  FOR ALL USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);</div>
-          <button class="setup-copy-btn" onclick="copySQL()">📋 复制 SQL</button>
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="setup-step-num">3</div>
-        <div class="setup-step-text">
-          <strong>填入连接信息</strong><br>
-          在 Supabase 左侧菜单 <code>Settings → API</code>，复制 <code>Project URL</code> 和 <code>anon public key</code>。
-        </div>
-      </div>
-    </div>
-    <div class="auth-form">
-      <input type="text" class="auth-input" id="setup-url" placeholder="Project URL (例: https://xxxxx.supabase.co)">
-      <input type="text" class="auth-input" id="setup-key" placeholder="anon public key">
-      <button class="auth-submit" onclick="saveSetup()" style="background:linear-gradient(135deg,#10b981,#059669);">✅ 保存并连接</button>
-      <div style="text-align:center;margin-top:8px;">
-        <a style="font-size:13px;color:var(--gray-400);cursor:pointer;" onclick="skipSetup()">跳过，仅使用本地存储</a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Tab: 主页 -->
 <div class="container tab-content active" id="tab-home">
-  <!-- Hero Countdown -->
   <div class="hero">
     <div class="hero-top">
       <span class="hero-badge">⏳ 倒计时</span>
@@ -616,7 +436,6 @@ CREATE POLICY "Users manage own settings" ON user_settings
     </div>
   </div>
 
-  <!-- Stats Cards -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon blue">🔥</div>
@@ -636,7 +455,6 @@ CREATE POLICY "Users manage own settings" ON user_settings
     </div>
   </div>
 
-  <!-- Quote & Today's Status -->
   <div class="home-grid">
     <div class="quote-card">
       <div class="quote-mark">"</div>
@@ -717,7 +535,7 @@ CREATE POLICY "Users manage own settings" ON user_settings
     <div class="card-header">
       <span class="card-title" id="savings-target-label">💰 存款进度 · 目标 ¥1,000,000</span>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="showTargetSettings()" title="自定义目标">⚙️ 调整目标</button>
+        <button class="btn btn-outline btn-sm" onclick="showTargetSettings()">⚙️ 调整目标</button>
         <span style="font-size:14px;font-weight:700;color:var(--blue-600)" id="savings-pct">0%</span>
       </div>
     </div>
@@ -735,7 +553,6 @@ CREATE POLICY "Users manage own settings" ON user_settings
       <div><div style="font-size:24px;font-weight:800;" id="savings-monthly">¥13,889</div><div style="font-size:12px;color:var(--gray-400)">建议月存</div></div>
     </div>
   </div>
-
   <div class="card" style="margin-bottom:24px;">
     <div class="card-header">
       <span class="card-title">📅 打卡热力图</span>
@@ -754,7 +571,6 @@ CREATE POLICY "Users manage own settings" ON user_settings
       <span>多</span>
     </div>
   </div>
-
   <div class="card">
     <div class="card-header"><span class="card-title">📊 月度统计</span></div>
     <div id="monthly-stats">
@@ -858,56 +674,141 @@ const ACHIEVEMENTS = [
   { id: 'mood-master', icon: '🌈', name: '情绪大师', desc: '每种心情都记录过', check: (d) => d.allMoods.size >= 5 },
 ];
 
-// ========== Supabase Client ==========
-let SB = null;
-let SB_CONFIG = null;
+// ========== Netlify Identity ==========
+const API_BASE = window.location.hostname.includes('netlify.app')
+  ? '/.netlify/functions'
+  : 'https://sedona-jf.netlify.app/.netlify/functions';
 
-function getSupabaseConfig() {
-  try {
-    const raw = localStorage.getItem('sixYearSupabaseConfig');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
+let currentIdentityUser = null;
 
-function initSupabase() {
-  SB_CONFIG = getSupabaseConfig();
-  if (SB_CONFIG && SB_CONFIG.url && SB_CONFIG.key) {
-    try {
-      SB = supabase.createClient(SB_CONFIG.url, SB_CONFIG.key);
-      return true;
-    } catch (e) {
-      console.error('Supabase init error:', e);
-      return false;
+function initNetlifyIdentity() {
+  netlifyIdentity.init({
+    APIUrl: 'https://sedona-jf.netlify.app/.netlify/identity',
+  });
+
+  netlifyIdentity.on('init', (user) => {
+    currentIdentityUser = user;
+    updateUserUI();
+    if (user) {
+      onLoginSync();
     }
-  }
-  return false;
+  });
+
+  netlifyIdentity.on('login', (user) => {
+    currentIdentityUser = user;
+    netlifyIdentity.close();
+    updateUserUI();
+    onLoginSync();
+  });
+
+  netlifyIdentity.on('logout', () => {
+    currentIdentityUser = null;
+    updateUserUI();
+    showToast('👋 已退出账号，数据保留在本地');
+  });
+
+  netlifyIdentity.on('error', (err) => {
+    console.error('Identity error:', err);
+  });
 }
 
 function isLoggedIn() {
-  return SB && SB_CONFIG && localStorage.getItem('sb-session');
+  return !!currentIdentityUser;
 }
 
-async function getSession() {
-  if (!SB) return null;
-  try {
-    const { data } = await SB.auth.getSession();
-    return data.session;
-  } catch (e) { return null; }
+function getUserId() {
+  return currentIdentityUser ? currentIdentityUser.id : null;
 }
 
-async function refreshSession() {
-  const session = await getSession();
-  const loggedIn = !!session;
-  if (loggedIn) {
-    localStorage.setItem('sb-session', JSON.stringify({ user: session.user }));
-  } else {
-    localStorage.removeItem('sb-session');
+async function getToken() {
+  if (!currentIdentityUser) return null;
+  // Refresh token if needed
+  if (currentIdentityUser.token && currentIdentityUser.token.expires_at < Date.now()) {
+    try {
+      const refreshed = await currentIdentityUser.jwt();
+      return refreshed;
+    } catch (e) {
+      return null;
+    }
   }
-  updateUserUI();
-  return loggedIn;
+  return currentIdentityUser.token ? currentIdentityUser.token.access_token : null;
 }
 
-// ========== Data Store (localStorage + Supabase sync) ==========
+function handleUserClick() {
+  if (isLoggedIn()) {
+    if (confirm('已登录账号。\n\n选择"确定"退出账号，或"取消"继续。')) {
+      netlifyIdentity.logout();
+    }
+  } else {
+    netlifyIdentity.open('login');
+  }
+}
+
+function updateUserUI() {
+  const btn = document.getElementById('nav-user-btn');
+  const label = document.getElementById('nav-user-label');
+  if (isLoggedIn()) {
+    btn.classList.add('logged-in');
+    const email = currentIdentityUser.email || '用户';
+    label.textContent = email.split('@')[0];
+    btn.title = '点击退出账号';
+  } else {
+    btn.classList.remove('logged-in');
+    label.textContent = '账号';
+    btn.title = '登录/注册账号';
+  }
+}
+
+// ========== Cloud Sync (via Netlify Functions) ==========
+async function cloudAPI(method, body) {
+  const token = await getToken();
+  if (!token) return null;
+  try {
+    const opts = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(`${API_BASE}/data`, opts);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error('Cloud API error:', e);
+    return null;
+  }
+}
+
+async function pullFromCloud() {
+  const data = await cloudAPI('GET');
+  return data; // { entries: {...} } or null
+}
+
+async function pushToCloud(data) {
+  await cloudAPI('POST', data);
+}
+
+async function onLoginSync() {
+  showToast('🔄 正在同步云端数据...');
+  // First pull cloud data
+  const cloudData = await pullFromCloud();
+  // Then push local data (cloud wins on conflict since we push last)
+  const localData = getData();
+  if (cloudData && cloudData.entries) {
+    // Merge: cloud wins for same date
+    const merged = { entries: { ...localData.entries, ...cloudData.entries } };
+    saveDataRaw(merged);
+  }
+  // Push merged data to cloud
+  const merged = getData();
+  await pushToCloud(merged);
+  refreshAll();
+  showToast('✅ 数据同步完成');
+}
+
+// ========== Data Store ==========
 function getData() {
   try {
     const raw = localStorage.getItem('sixYearPromise');
@@ -915,103 +816,16 @@ function getData() {
   } catch (e) { return { entries: {} }; }
 }
 
-function saveData(data) {
-  localStorage.setItem('sixYearPromise', JSON.stringify(data));
-  syncToCloud(data);
-}
-
-async function syncToCloud(data) {
-  if (!isLoggedIn()) return;
-  // Sync happens in background, don't block UI
-  try {
-    const entries = Object.entries(data.entries);
-    for (const [date, entry] of entries) {
-      await SB.from('entries').upsert({
-        user_id: (await getSession()).user.id,
-        date,
-        mood: entry.mood,
-        happy: entry.happy || '',
-        challenge: entry.challenge || '',
-        thoughts: entry.thoughts || '',
-        savings: entry.savings || 0,
-        exercised: entry.exercised || false,
-        learned: entry.learned || false,
-      }, { onConflict: 'user_id,date' });
-    }
-  } catch (e) {
-    console.error('Sync error:', e);
-  }
-}
-
-async function pullFromCloud() {
-  if (!isLoggedIn()) return null;
-  try {
-    const { data, error } = await SB.from('entries').select('*').order('date', { ascending: false });
-    if (error) throw error;
-    const entries = {};
-    for (const row of data) {
-      entries[row.date] = {
-        mood: row.mood,
-        happy: row.happy || '',
-        challenge: row.challenge || '',
-        thoughts: row.thoughts || '',
-        savings: row.savings || 0,
-        exercised: row.exercised || false,
-        learned: row.learned || false,
-        timestamp: row.created_at,
-      };
-    }
-    return { entries };
-  } catch (e) {
-    console.error('Pull error:', e);
-    return null;
-  }
-}
-
-async function pushLocalToCloud() {
-  if (!isLoggedIn()) return;
-  const localData = getData();
-  if (Object.keys(localData.entries).length === 0) return;
-  try {
-    const session = await getSession();
-    if (!session) return;
-    for (const [date, entry] of Object.entries(localData.entries)) {
-      await SB.from('entries').upsert({
-        user_id: session.user.id,
-        date,
-        mood: entry.mood,
-        happy: entry.happy || '',
-        challenge: entry.challenge || '',
-        thoughts: entry.thoughts || '',
-        savings: entry.savings || 0,
-        exercised: entry.exercised || false,
-        learned: entry.learned || false,
-      }, { onConflict: 'user_id,date' });
-    }
-  } catch (e) { console.error('Push error:', e); }
-}
-
-async function mergeCloudData() {
-  if (!isLoggedIn()) return;
-  showToast('🔄 正在同步云端数据...');
-  const cloudData = await pullFromCloud();
-  if (!cloudData) {
-    // No cloud data, push local
-    await pushLocalToCloud();
-    showToast('✅ 已同步本地数据到云端');
-    return;
-  }
-  const localData = getData();
-  // Merge: cloud wins for same date
-  const merged = { entries: { ...localData.entries, ...cloudData.entries } };
-  saveDataRaw(merged);
-  // Push merged back to ensure cloud has everything
-  await pushLocalToCloud();
-  showToast('✅ 数据同步完成');
-}
-
 function saveDataRaw(data) {
   localStorage.setItem('sixYearPromise', JSON.stringify(data));
+}
+
+function saveData(data) {
+  saveDataRaw(data);
+  // Sync to cloud in background
+  if (isLoggedIn()) {
+    pushToCloud(data).catch(() => {});
+  }
 }
 
 function getToday() {
@@ -1033,15 +847,6 @@ function deleteEntry(date) {
   const data = getData();
   delete data.entries[date];
   saveData(data);
-  // Also delete from cloud
-  if (isLoggedIn()) {
-    (async () => {
-      try {
-        const session = await getSession();
-        if (session) await SB.from('entries').delete().eq('user_id', session.user.id).eq('date', date);
-      } catch (e) {}
-    })();
-  }
 }
 
 function getAllEntries() {
@@ -1121,218 +926,6 @@ function getStats() {
     allMoods,
     monthlyData,
   };
-}
-
-// ========== Supabase Settings Sync ==========
-async function pullSettings() {
-  if (!isLoggedIn()) return null;
-  try {
-    const { data, error } = await SB.from('user_settings').select('*').single();
-    if (error || !data) return null;
-    if (data.target_amount) {
-      localStorage.setItem('sixYearTarget', data.target_amount.toString());
-    }
-    return data;
-  } catch (e) { return null; }
-}
-
-async function pushSettings() {
-  if (!isLoggedIn()) return;
-  try {
-    const session = await getSession();
-    if (!session) return;
-    const target = getTargetAmount();
-    await SB.from('user_settings').upsert({
-      user_id: session.user.id,
-      target_amount: target,
-    }, { onConflict: 'user_id' });
-  } catch (e) {}
-}
-
-// ========== Auth Functions ==========
-async function handleLogin(e) {
-  e.preventDefault();
-  if (!SB) { showAuthError('请先配置 Supabase 连接信息'); return; }
-  hideAuthMessages();
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  try {
-    const { data, error } = await SB.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    await onAuthSuccess(data);
-  } catch (err) {
-    showAuthError(err.message || '登录失败');
-  }
-}
-
-async function handleRegister(e) {
-  e.preventDefault();
-  if (!SB) { showAuthError('请先配置 Supabase 连接信息'); return; }
-  hideAuthMessages();
-  const email = document.getElementById('register-email').value.trim();
-  const password = document.getElementById('register-password').value;
-  try {
-    const { data, error } = await SB.auth.signUp({ email, password });
-    if (error) throw error;
-    if (data.user && data.session) {
-      await onAuthSuccess(data);
-    } else {
-      showAuthSuccess('注册成功！请检查邮箱确认链接（部分项目可能不需要确认）。');
-    }
-  } catch (err) {
-    showAuthError(err.message || '注册失败');
-  }
-}
-
-async function onAuthSuccess(data) {
-  localStorage.setItem('sb-session', JSON.stringify({ user: data.user }));
-  closeAuth();
-  updateUserUI();
-  await pushLocalToCloud();
-  await mergeCloudData();
-  await pullSettings();
-  refreshAll();
-  const email = data.user.email;
-  showToast('✅ 已登录: ' + email + ' | 数据已同步');
-}
-
-async function handleLogout() {
-  if (!confirm('确定要退出账号吗？\n本地数据不会丢失，但将停止云同步。')) return;
-  if (SB) {
-    try { await SB.auth.signOut(); } catch (e) {}
-  }
-  localStorage.removeItem('sb-session');
-  updateUserUI();
-  showToast('👋 已退出账号，数据保留在本地');
-}
-
-function showAuthError(msg) {
-  const el = document.getElementById('auth-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function showAuthSuccess(msg) {
-  const el = document.getElementById('auth-success');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function hideAuthMessages() {
-  document.getElementById('auth-error').style.display = 'none';
-  document.getElementById('auth-success').style.display = 'none';
-}
-
-function handleUserClick() {
-  if (isLoggedIn()) {
-    if (confirm('已登录账号。\n\n选择"确定"退出账号，或"取消"继续。')) {
-      handleLogout();
-    }
-  } else {
-    if (!getSupabaseConfig()) {
-      showSetupOverlay();
-    } else {
-      showAuthOverlay();
-    }
-  }
-}
-
-function showAuthOverlay() {
-  initSupabaseIfNeeded();
-  document.getElementById('auth-overlay').style.display = 'flex';
-  hideAuthMessages();
-  switchAuthTab('login');
-  document.getElementById('login-email').value = '';
-  document.getElementById('login-password').value = '';
-  document.getElementById('register-email').value = '';
-  document.getElementById('register-password').value = '';
-}
-
-function closeAuth() {
-  document.getElementById('auth-overlay').style.display = 'none';
-}
-
-function switchAuthTab(tab) {
-  document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('auth-tab-register').classList.toggle('active', tab === 'register');
-  document.getElementById('auth-form-login').style.display = tab === 'login' ? 'flex' : 'none';
-  document.getElementById('auth-form-register').style.display = tab === 'register' ? 'flex' : 'none';
-  document.getElementById('auth-switch-text').textContent = tab === 'login' ? '还没有账号？' : '已有账号？';
-  document.getElementById('auth-switch-link').textContent = tab === 'login' ? '立即注册' : '去登录';
-  document.getElementById('auth-switch-link').onclick = () => switchAuthTab(tab === 'login' ? 'register' : 'login');
-  hideAuthMessages();
-}
-
-function initSupabaseIfNeeded() {
-  if (!SB && getSupabaseConfig()) {
-    initSupabase();
-  }
-}
-
-// ========== Setup Screen ==========
-function showSetupOverlay() {
-  document.getElementById('setup-overlay').style.display = 'flex';
-  const config = getSupabaseConfig();
-  if (config) {
-    document.getElementById('setup-url').value = config.url || '';
-    document.getElementById('setup-key').value = config.key || '';
-  }
-}
-
-function skipSetup() {
-  SB = null;
-  SB_CONFIG = null;
-  document.getElementById('setup-overlay').style.display = 'none';
-  showToast('已跳过云同步，数据仅保存在本地');
-}
-
-function saveSetup() {
-  const url = document.getElementById('setup-url').value.trim();
-  const key = document.getElementById('setup-key').value.trim();
-  if (!url || !key) {
-    showToast('请填写 Supabase URL 和 anon key');
-    return;
-  }
-  const config = { url, key };
-  localStorage.setItem('sixYearSupabaseConfig', JSON.stringify(config));
-  const ok = initSupabase();
-  if (!ok) {
-    showToast('Supabase 初始化失败，请检查 URL 和 Key');
-    return;
-  }
-  document.getElementById('setup-overlay').style.display = 'none';
-  showToast('✅ Supabase 已连接！请登录或注册账号');
-  setTimeout(() => showAuthOverlay(), 500);
-}
-
-function copySQL() {
-  const sql = document.getElementById('setup-sql').textContent;
-  navigator.clipboard.writeText(sql).then(() => {
-    showToast('📋 SQL 已复制，请粘贴到 Supabase SQL Editor 运行');
-  }).catch(() => {
-    showToast('复制失败，请手动选择 SQL 文本');
-  });
-}
-
-// ========== Update User UI ==========
-function updateUserUI() {
-  const btn = document.getElementById('nav-user-btn');
-  const label = document.getElementById('nav-user-label');
-  if (isLoggedIn()) {
-    btn.classList.add('logged-in');
-    try {
-      const sessionData = JSON.parse(localStorage.getItem('sb-session'));
-      if (sessionData && sessionData.user) {
-        const email = sessionData.user.email || '用户';
-        label.textContent = email.split('@')[0];
-      }
-    } catch (e) { label.textContent = '已登录'; }
-    btn.title = '点击退出账号';
-  } else {
-    btn.classList.remove('logged-in');
-    label.textContent = '账号';
-    btn.title = '登录/注册账号';
-  }
 }
 
 // ========== Countdown Timer ==========
@@ -1890,7 +1483,6 @@ function getTargetAmount() {
 
 function setTargetAmount(amount) {
   localStorage.setItem('sixYearTarget', amount.toString());
-  pushSettings();
 }
 
 // ========== Tab Navigation ==========
@@ -1927,25 +1519,9 @@ function refreshAll() {
 }
 
 // ========== Init ==========
-async function init() {
-  // Try to init Supabase
-  const hasConfig = !!getSupabaseConfig();
-  if (hasConfig) {
-    initSupabase();
-    // Try to restore session
-    const session = await getSession();
-    if (session) {
-      localStorage.setItem('sb-session', JSON.stringify({ user: session.user }));
-      // Pull latest cloud data in background
-      mergeCloudData().then(() => refreshAll());
-      pullSettings();
-    } else {
-      localStorage.removeItem('sb-session');
-    }
-  }
-  updateUserUI();
+function init() {
+  initNetlifyIdentity();
 
-  // Tab navigation
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', () => switchTab(link.dataset.tab));
   });
@@ -1964,25 +1540,14 @@ async function init() {
     if (e.target === e.currentTarget) closeModal();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeModal();
-      closeAuth();
-    }
+    if (e.key === 'Escape') closeModal();
   });
 
-  // Close auth overlay on outside click
-  document.getElementById('auth-overlay').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeAuth();
-  });
-
-  // Initial render
   updateCountdown();
   updateHomeTab();
 
-  // Update countdown every second
   setInterval(updateCountdown, 1000);
 
-  // Auto-refresh when date changes (midnight)
   setInterval(() => {
     const today = getToday();
     if (today !== window._lastDate) {
@@ -1991,13 +1556,6 @@ async function init() {
     }
   }, 60000);
   window._lastDate = getToday();
-
-  // Auto-refresh session every 30 minutes
-  setInterval(async () => {
-    if (hasConfig && SB) {
-      await refreshSession();
-    }
-  }, 1800000);
 }
 
 document.addEventListener('DOMContentLoaded', init);

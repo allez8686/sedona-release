@@ -1,0 +1,6 @@
+{
+  "name": "six-years-functions",
+  "dependencies": {
+    "@netlify/blobs": "^7.4.0"
+  }
+}
