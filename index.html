@@ -437,6 +437,119 @@ input[type="range"] {
   background: var(--bg);
 }
 
+/* ── Affirmation Card (Home) ── */
+.affirm-section {
+  margin-top: 32px;
+}
+.affirm-section .section-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+.affirm-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s;
+  position: relative;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.affirm-card:active { transform: scale(0.98); }
+.affirm-card .affirm-text {
+  font-size: 20px;
+  color: var(--text);
+  line-height: 1.7;
+  letter-spacing: 1px;
+  transition: opacity 0.3s;
+}
+.affirm-card .affirm-theme {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 10px;
+  letter-spacing: 1px;
+}
+.affirm-card .affirm-actions {
+  display: flex;
+  gap: 20px;
+  margin-top: 14px;
+  align-items: center;
+}
+.affirm-fav-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  padding: 4px;
+}
+.affirm-fav-btn:active { transform: scale(1.3); }
+.affirm-fav-btn.faved { filter: none; }
+.affirm-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 8px;
+}
+
+/* ── Affirm Browse Page ── */
+.affirm-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.affirm-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #e0d5c5;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.affirm-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.affirm-browse-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.affirm-browse-item {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  padding: 20px 18px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.2s;
+}
+.affirm-browse-item .affirm-browse-text {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.6;
+  flex: 1;
+}
+.affirm-browse-item .affirm-browse-theme {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
 /* ── Result Modal ── */
 .result-options {
   display: flex;
@@ -491,6 +604,7 @@ input[type="range"] {
   <div class="top-bar" id="topBar">
     <button class="icon-btn" id="btnMusic" title="背景音乐">🎵</button>
     <button class="icon-btn" id="btnDiary" title="释放日记">📖</button>
+    <button class="icon-btn" id="btnAffirm" title="每日肯定语">✨</button>
     <button class="icon-btn" id="btnReminder" title="每日提醒">🔔</button>
   </div>
 
@@ -512,6 +626,35 @@ input[type="range"] {
         <p>释放「想要认同」「想要控制」「想要安全」</p>
       </div>
     </div>
+
+    <div class="affirm-section">
+      <div class="section-label">✨ 每日肯定语</div>
+      <div class="affirm-card" id="homeAffirmCard">
+        <div class="affirm-text" id="homeAffirmText"></div>
+        <div class="affirm-theme" id="homeAffirmTheme"></div>
+        <div class="affirm-actions">
+          <button class="affirm-fav-btn" id="homeAffirmFav">🤍</button>
+        </div>
+        <div class="affirm-hint">轻触卡片切换下一句</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Affirm Browse View ── -->
+  <div class="view" id="viewAffirm">
+    <div class="diary-header">
+      <button class="back-btn" id="backAffirm">←</button>
+      <h2>每日肯定语</h2>
+    </div>
+    <div class="affirm-tabs" id="affirmTabs">
+      <button class="affirm-tab active" data-filter="all">全部</button>
+      <button class="affirm-tab" data-filter="self">自我接纳</button>
+      <button class="affirm-tab" data-filter="letgo">放手信任</button>
+      <button class="affirm-tab" data-filter="peace">内在平静</button>
+      <button class="affirm-tab" data-filter="joy">自由喜悦</button>
+      <button class="affirm-tab" data-filter="faved">❤️ 收藏</button>
+    </div>
+    <div class="affirm-browse-list" id="affirmBrowseList"></div>
   </div>
 
   <!-- ── Emotion Flow View ── -->
@@ -1397,6 +1540,143 @@ function renderReminderUI() {
 }
 
 // ═══════════════════════════════════════
+//  Affirmations
+// ═══════════════════════════════════════
+const affirmations = [
+  // 自我接纳
+  { text:'我已经足够好了，不需要向任何人证明。', theme:'self', label:'自我接纳' },
+  { text:'我接纳现在的自己，包括所有的不完美。', theme:'self', label:'自我接纳' },
+  { text:'我值得被爱，值得拥有美好的事物。', theme:'self', label:'自我接纳' },
+  { text:'我的存在本身就是价值。', theme:'self', label:'自我接纳' },
+  { text:'我对自己温柔，就像对待最好的朋友。', theme:'self', label:'自我接纳' },
+  { text:'我不需要改变自己来迎合别人的期待。', theme:'self', label:'自我接纳' },
+  { text:'我的感受是重要的，我允许自己拥有它们。', theme:'self', label:'自我接纳' },
+  { text:'我与自己和解，放下所有的自我批判。', theme:'self', label:'自我接纳' },
+  // 放手信任
+  { text:'我选择放手，让一切自然发生。', theme:'letgo', label:'放手信任' },
+  { text:'我相信宇宙会安排好一切。', theme:'letgo', label:'放手信任' },
+  { text:'放下控制，我反而获得了真正的力量。', theme:'letgo', label:'放手信任' },
+  { text:'我不需要抓住每一件事，我允许它们流过。', theme:'letgo', label:'放手信任' },
+  { text:'我相信自己有能力面对任何结果。', theme:'letgo', label:'放手信任' },
+  { text:'每一次放手，都让我更自由。', theme:'letgo', label:'放手信任' },
+  { text:'我释放所有的紧张和执着。', theme:'letgo', label:'放手信任' },
+  { text:'信任过程，一切都是最好的安排。', theme:'letgo', label:'放手信任' },
+  // 内在平静
+  { text:'此刻，我的内心是平静的。', theme:'peace', label:'内在平静' },
+  { text:'平静不是没有风浪，而是内心的安定。', theme:'peace', label:'内在平静' },
+  { text:'深呼吸，我回到内在的宁静。', theme:'peace', label:'内在平静' },
+  { text:'我选择用平和的心态面对今天。', theme:'peace', label:'内在平静' },
+  { text:'任何事都不能夺走我内在的平静。', theme:'peace', label:'内在平静' },
+  { text:'安静下来，我能听见自己的声音。', theme:'peace', label:'内在平静' },
+  { text:'我的内心是一个安全、宁静的空间。', theme:'peace', label:'内在平静' },
+  { text:'不急，一切都刚刚好。', theme:'peace', label:'内在平静' },
+  // 自由喜悦
+  { text:'我是自由的，我的内心不受束缚。', theme:'joy', label:'自由喜悦' },
+  { text:'喜悦来自内在，不需要任何理由。', theme:'joy', label:'自由喜悦' },
+  { text:'我选择在今天找到一件让我开心的小事。', theme:'joy', label:'自由喜悦' },
+  { text:'放下期待，快乐自然流淌。', theme:'joy', label:'自由喜悦' },
+  { text:'我是自己生活的主角，不是配角。', theme:'joy', label:'自由喜悦' },
+  { text:'每一天都是新的开始，充满无限可能。', theme:'joy', label:'自由喜悦' },
+  { text:'我允许自己享受生活的美好。', theme:'joy', label:'自由喜悦' },
+  { text:'轻松和快乐是我的天性。', theme:'joy', label:'自由喜悦' },
+];
+
+function loadAffirmData() {
+  try { return JSON.parse(localStorage.getItem('sedona_affirm')) || { faved:[], dayIdx:0, lastDate:'' }; }
+  catch { return { faved:[], dayIdx:0, lastDate:'' }; }
+}
+function saveAffirmData(data) {
+  localStorage.setItem('sedona_affirm', JSON.stringify(data));
+}
+
+function getDailyIdx() {
+  const data = loadAffirmData();
+  const today = new Date().toDateString();
+  if (data.lastDate !== today) {
+    data.dayIdx = Math.floor(Math.random() * affirmations.length);
+    data.lastDate = today;
+    saveAffirmData(data);
+  }
+  return data.dayIdx;
+}
+
+function isFaved(idx) {
+  return loadAffirmData().faved.includes(idx);
+}
+
+function toggleFav(idx) {
+  const data = loadAffirmData();
+  const pos = data.faved.indexOf(idx);
+  if (pos >= 0) data.faved.splice(pos, 1);
+  else data.faved.push(idx);
+  saveAffirmData(data);
+  return !data.faved.includes(idx);
+}
+
+let homeAffirmIdx = getDailyIdx();
+
+function renderHomeAffirmation() {
+  const a = affirmations[homeAffirmIdx];
+  document.getElementById('homeAffirmText').textContent = '“' + a.text + '”';
+  document.getElementById('homeAffirmTheme').textContent = '— ' + a.label;
+  updateHomeFavBtn();
+}
+
+function updateHomeFavBtn() {
+  const btn = document.getElementById('homeAffirmFav');
+  btn.textContent = isFaved(homeAffirmIdx) ? '❤️' : '🤍';
+}
+
+function nextHomeAffirmation() {
+  homeAffirmIdx = (homeAffirmIdx + 1) % affirmations.length;
+  // Fade animation
+  const el = document.getElementById('homeAffirmText');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    renderHomeAffirmation();
+    el.style.opacity = '1';
+  }, 200);
+}
+
+function renderAffirmBrowse(filter) {
+  const list = document.getElementById('affirmBrowseList');
+  const data = loadAffirmData();
+  let filtered = affirmations.map((a, i) => ({...a, idx: i}));
+
+  if (filter === 'faved') {
+    filtered = filtered.filter(a => data.faved.includes(a.idx));
+  } else if (filter && filter !== 'all') {
+    filtered = filtered.filter(a => a.theme === filter);
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="diary-empty">还没有收藏的肯定语<br><br>在主页面点击 🤍 即可收藏 ✨</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(a => `
+    <div class="affirm-browse-item">
+      <div>
+        <div class="affirm-browse-text">“${a.text}”</div>
+        <div class="affirm-browse-theme">— ${a.label}</div>
+      </div>
+      <button class="affirm-fav-btn" data-idx="${a.idx}">${data.faved.includes(a.idx) ? '❤️' : '🤍'}</button>
+    </div>
+  `).join('');
+
+  // Bind fav buttons
+  list.querySelectorAll('.affirm-fav-btn').forEach(btn => {
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      const idx = parseInt(this.dataset.idx);
+      toggleFav(idx);
+      renderAffirmBrowse(filter);
+      renderHomeAffirmation();
+    };
+  });
+}
+
+// ═══════════════════════════════════════
 //  Event Bindings
 // ═══════════════════════════════════════
 
@@ -1446,6 +1726,33 @@ document.getElementById('backWants').onclick = () => {
   else showWantsSelect();
 };
 document.getElementById('backDiary').onclick = () => { showHome(); };
+
+// Affirmation card on home
+document.getElementById('homeAffirmCard').onclick = (e) => {
+  if (e.target.closest('.affirm-fav-btn')) return;
+  nextHomeAffirmation();
+};
+document.getElementById('homeAffirmFav').onclick = (e) => {
+  e.stopPropagation();
+  toggleFav(homeAffirmIdx);
+  updateHomeFavBtn();
+};
+
+// Affirm browse
+document.getElementById('btnAffirm').onclick = () => {
+  showView('viewAffirm');
+  renderAffirmBrowse('all');
+};
+document.getElementById('backAffirm').onclick = () => { showHome(); };
+
+// Affirm tabs
+document.querySelectorAll('.affirm-tab').forEach(tab => {
+  tab.onclick = function() {
+    document.querySelectorAll('.affirm-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    renderAffirmBrowse(this.dataset.filter);
+  };
+});
 
 // Top bar buttons
 document.getElementById('btnDiary').onclick = () => {
@@ -1551,6 +1858,7 @@ loadMusicSettings();
 loadReminders();
 startReminderCheck();
 requestNotificationPermission();
+renderHomeAffirmation();
 </script>
 </body>
 </html>
