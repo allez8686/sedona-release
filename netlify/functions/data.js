@@ -36,13 +36,58 @@ exports.handler = async (event, context) => {
 
   try {
     if (event.httpMethod === 'GET') {
-      const data = await blobGet('entries', key);
-      return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: data || '{"entries":{}}' };
+      const raw = await blobGet('entries', key);
+      if (!raw) {
+	return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entries: {}, _version: 0 }) };
+      }
+      const data = JSON.parse(raw);
+      return {
+	statusCode: 200,
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({ entries: data.entries || {}, _version: data._version || 0 }),
+      };
     }
     if (event.httpMethod === 'POST' || event.httpMethod === 'PUT') {
       const body = JSON.parse(event.body);
-      await blobSet('entries', key, JSON.stringify(body));
-      return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: true }) };
+      const clientVersion = body._version;
+      if (clientVersion == null) {
+	return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '缺少 _version，请先拉取数据' }) };
+      }
+
+      let currentVersion = 0;
+      let currentEntries = {};
+      const raw = await blobGet('entries', key);
+      if (raw) {
+	try {
+	  const current = JSON.parse(raw);
+	  currentVersion = current._version || 0;
+	  currentEntries = current.entries || {};
+	} catch (e) {}
+      }
+
+      if (clientVersion !== currentVersion) {
+	return {
+	  statusCode: 409,
+	  headers: { 'Content-Type': 'application/json' },
+	  body: JSON.stringify({
+	    error: '数据已被其他设备修改，请刷新后重试',
+	    _version: currentVersion,
+	    entries: currentEntries,
+	  }),
+	};
+      }
+
+      const newVersion = currentVersion + 1;
+      await blobSet('entries', key, JSON.stringify({
+	entries: body.entries || {},
+	_version: newVersion,
+      }));
+
+      return {
+	statusCode: 200,
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({ ok: true, _version: newVersion }),
+      };
     }
     return { statusCode: 405, body: 'Method Not Allowed' };
   } catch (e) {

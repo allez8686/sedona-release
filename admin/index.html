@@ -211,7 +211,8 @@ tbody tr.expanded { background: var(--blue-50); }
       <span id="lastRefresh">等待加载...</span>
     </div>
     <div class="header-right">
-      <button class="btn btn-outline" onclick="refreshData()">刷新数据</button>
+      <button class="btn btn-outline" onclick="refreshData(true)">强制刷新</button>
+      <button class="btn btn-primary" onclick="exportData()">导出数据</button>
       <button class="btn btn-outline" onclick="showChangePassword()">修改密码</button>
       <button class="btn btn-danger" onclick="doLogout()">退出登录</button>
     </div>
@@ -398,7 +399,8 @@ function renderAll() {
   renderStatsCards(overviewData.overview);
   renderCharts(overviewData.overview);
   renderUsersTable();
-  document.getElementById('lastRefresh').textContent = '最后刷新: ' + new Date().toLocaleTimeString('zh-CN');
+  const cachedInfo = overviewData._cached ? ' (缓存 · ' + (overviewData._cachedAt ? new Date(overviewData._cachedAt).toLocaleTimeString('zh-CN') : '-') + ')' : '';
+  document.getElementById('lastRefresh').textContent = '最后刷新: ' + new Date().toLocaleTimeString('zh-CN') + cachedInfo;
 }
 
 function renderStatsCards(o) {
@@ -692,20 +694,33 @@ function renderUserDetail(data, panel) {
 }
 
 // ========== Refresh ==========
-async function refreshData() {
-  // Cleanup detail chart instances
+async function refreshData(force) {
   ['dcSavings', 'dcMood', 'dcMonthly'].forEach(k => { if (chartInstances[k]) { chartInstances[k].destroy(); delete chartInstances[k]; } });
   expandedUserId = null;
   document.getElementById('userDetail').classList.remove('active');
   document.getElementById('userDetail').innerHTML = '';
   userDetailCache = {};
 
-  const data = await adminAPI('overview');
+  const data = await adminAPI(force ? 'refresh' : 'overview');
   if (!data.error) {
     overviewData = data;
     renderAll();
-    showToast('数据已刷新', 'success');
+    const cachedLabel = data._cached ? ' (缓存)' : '';
+    showToast('数据已刷新' + cachedLabel, 'success');
   }
+}
+
+async function exportData() {
+  showToast('正在导出数据...', 'success');
+  const data = await adminAPI('backup');
+  if (data.error) { showToast('导出失败: ' + data.error, 'error'); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✅ 已导出 ' + (data.totalUsers || 0) + ' 个用户的数据', 'success');
 }
 
 // ========== Toast ==========

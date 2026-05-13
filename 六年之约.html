@@ -995,30 +995,104 @@ function updateUserUI() {
 }
 
 // ========== Cloud Sync ==========
-async function cloudAPI(method, body) {
+let _cloudVersion = null; // local cache of server _version
+let _pushTimer = null;    // debounce timer
+let _pendingPush = null;  // latest data to push
+let _retryQueue = [];     // offline queue
+
+async function cloudAPI(method, body, retries = 2) {
   const token = await getToken();
   if (!token) return null;
-  try {
-    const opts = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(`${API_BASE}/data`, opts);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (e) { return null; }
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 1000));
+    try {
+      const opts = {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(`${API_BASE}/data`, opts);
+      const data = await res.json().catch(() => null);
+      if (res.status === 409 && data) {
+        return { _conflict: true, _version: data._version, entries: data.entries };
+      }
+      if (!res.ok) return null;
+      return data;
+    } catch (e) { if (attempt === retries) return null; }
+  }
+  return null;
 }
 
 async function pullFromCloud() {
-  return await cloudAPI('GET');
+  const result = await cloudAPI('GET');
+  if (result && result._version != null) {
+    _cloudVersion = result._version;
+  }
+  return result;
 }
 
-async function pushToCloud(data) {
-  await cloudAPI('POST', data);
+async function pushToCloud(data, retryOnConflict = true) {
+  // Include version for optimistic locking
+  if (_cloudVersion != null) {
+    data._version = _cloudVersion;
+  }
+  const result = await cloudAPI('POST', data);
+  if (!result) {
+    // Failed — queue for retry
+    _retryQueue.push(data);
+    return false;
+  }
+  if (result._conflict && retryOnConflict) {
+    // 409 — another device wrote. Pull latest, merge, retry
+    const serverData = result;
+    const localData = getData();
+    const merged = { entries: { ...localData.entries, ...serverData.entries } };
+    saveDataRaw(merged);
+    _cloudVersion = serverData._version;
+    // Retry with merged data (one attempt, no more recursion)
+    return await pushToCloud(merged, false);
+  }
+  if (result.ok) {
+    _cloudVersion = result._version;
+    return true;
+  }
+  return false;
+}
+
+// Debounced push: collects rapid saves, only sends latest after 2s idle
+function schedulePush(data) {
+  _pendingPush = data;
+  if (_pushTimer) clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(async () => {
+    _pushTimer = null;
+    const d = _pendingPush;
+    _pendingPush = null;
+    if (d) await pushToCloud(d);
+    // Flush retry queue
+    if (_retryQueue.length > 0) {
+      const q = [..._retryQueue];
+      _retryQueue = [];
+      for (const item of q) {
+        await pushToCloud(item, false);
+      }
+    }
+  }, 2000);
+}
+
+// Flush immediately (for login sync)
+async function flushPush() {
+  if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
+  if (_pendingPush) {
+    const d = _pendingPush; _pendingPush = null;
+    await pushToCloud(d);
+  }
+  if (_retryQueue.length > 0) {
+    const q = [..._retryQueue]; _retryQueue = [];
+    for (const item of q) await pushToCloud(item, false);
+  }
 }
 
 async function onLoginSync() {
@@ -1030,7 +1104,12 @@ async function onLoginSync() {
     saveDataRaw(merged);
   }
   const merged = getData();
-  await pushToCloud(merged);
+  // Flush immediately (not debounced) for login sync
+  if (_cloudVersion != null) merged._version = _cloudVersion;
+  const result = await cloudAPI('POST', merged);
+  if (result && !result._conflict && result.ok) {
+    _cloudVersion = result._version;
+  }
   refreshAll();
   showToast('✅ 数据同步完成');
 }
@@ -1050,7 +1129,7 @@ function saveDataRaw(data) {
 function saveData(data) {
   saveDataRaw(data);
   if (isLoggedIn()) {
-    pushToCloud(data).catch(() => {});
+    schedulePush(data);
   }
 }
 
