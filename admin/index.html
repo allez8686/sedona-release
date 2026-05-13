@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 · 六年之约</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe;
+  --blue-300: #93c5fd; --blue-400: #60a5fa; --blue-500: #3b82f6;
+  --blue-600: #2563eb; --blue-700: #1d4ed8; --blue-800: #1e40af; --blue-900: #1e3a8a;
+  --white: #ffffff; --gray-50: #f8fafc; --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0; --gray-300: #cbd5e1; --gray-400: #94a3b8;
+  --gray-500: #64748b; --gray-600: #475569; --gray-700: #334155;
+  --gray-800: #1e293b; --gray-900: #0f172a;
+  --green: #10b981; --amber: #f59e0b; --red: #ef4444; --purple: #8b5cf6;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --radius: 12px; --radius-lg: 16px; --radius-xl: 24px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--gray-50); color: var(--gray-800); line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== Login Overlay ========== */
+.login-overlay {
+  position: fixed; inset: 0; background: linear-gradient(135deg, var(--blue-900), var(--gray-900));
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.login-card {
+  background: var(--white); border-radius: var(--radius-xl);
+  padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: var(--shadow-xl);
+}
+.login-card h1 { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 8px; }
+.login-card p { text-align: center; color: var(--gray-500); font-size: 14px; margin-bottom: 24px; }
+.login-card input {
+  width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 16px; outline: none; transition: border-color 0.2s;
+}
+.login-card input:focus { border-color: var(--blue-500); }
+.login-card button {
+  width: 100%; margin-top: 16px; padding: 12px; background: var(--blue-600);
+  color: var(--white); border: none; border-radius: var(--radius); font-size: 16px;
+  font-weight: 600; cursor: pointer; transition: background 0.2s;
+}
+.login-card button:hover { background: var(--blue-700); }
+.login-card .error { color: var(--red); font-size: 13px; text-align: center; margin-top: 12px; display: none; }
+
+/* ========== Dashboard Container ========== */
+.dashboard { max-width: 1400px; margin: 0 auto; padding: 20px 24px; display: none; }
+.dashboard.active { display: block; }
+
+/* Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 24px; padding: 20px 24px; background: var(--white);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.header-left h1 { font-size: 22px; font-weight: 800; }
+.header-left span { font-size: 13px; color: var(--gray-400); }
+.header-right { display: flex; gap: 10px; align-items: center; }
+.btn {
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-outline { background: var(--white); border: 2px solid var(--gray-200); color: var(--gray-600); }
+.btn-outline:hover { border-color: var(--blue-400); color: var(--blue-600); }
+.btn-primary { background: var(--blue-600); color: var(--white); }
+.btn-primary:hover { background: var(--blue-700); }
+.btn-danger { background: var(--white); border: 2px solid var(--red); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: var(--white); }
+
+/* Stats Cards */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--white); border-radius: var(--radius-lg); padding: 20px 24px;
+  box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px;
+}
+.stat-icon { width: 48px; height: 48px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.stat-icon.blue { background: var(--blue-50); color: var(--blue-600); }
+.stat-icon.green { background: #ecfdf5; color: var(--green); }
+.stat-icon.purple { background: #f5f3ff; color: var(--purple); }
+.stat-icon.amber { background: #fffbeb; color: var(--amber); }
+.stat-value { font-size: 28px; font-weight: 800; line-height: 1.2; }
+.stat-label { font-size: 13px; color: var(--gray-400); }
+
+/* Charts Grid */
+.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+.chart-card {
+  background: var(--white); border-radius: var(--radius-lg); padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--gray-700); }
+.chart-wrap { position: relative; height: 280px; }
+.chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* Users Table Section */
+.table-section { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+.table-header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  padding: 16px 24px; border-bottom: 1px solid var(--gray-100);
+}
+.table-header h3 { font-size: 16px; font-weight: 600; }
+.table-tools { display: flex; gap: 10px; align-items: center; }
+.search-input {
+  padding: 8px 12px; border: 2px solid var(--gray-200); border-radius: 8px;
+  font-size: 14px; outline: none; width: 220px; transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--blue-400); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: var(--gray-500);
+  border-bottom: 2px solid var(--gray-100); cursor: pointer; user-select: none;
+  white-space: nowrap; transition: color 0.15s;
+}
+thead th:hover { color: var(--blue-600); }
+thead th .sort-arrow { font-size: 11px; margin-left: 4px; opacity: 0.4; }
+thead th.sorted .sort-arrow { opacity: 1; color: var(--blue-600); }
+tbody td {
+  padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--gray-50);
+}
+tbody tr { cursor: pointer; transition: background 0.15s; }
+tbody tr:hover { background: var(--blue-50); }
+tbody tr.expanded { background: var(--blue-50); }
+.mood-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+/* User Detail Panel */
+.user-detail {
+  display: none; padding: 0 24px 24px; border-top: 1px solid var(--gray-100);
+  background: var(--gray-50);
+}
+.user-detail.active { display: block; }
+.detail-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  padding: 20px 0 16px;
+}
+.detail-stat { text-align: center; }
+.detail-stat .val { font-size: 24px; font-weight: 700; color: var(--blue-600); }
+.detail-stat .lbl { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.detail-charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.detail-chart { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); }
+.detail-chart h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--gray-600); }
+.detail-chart .cw { position: relative; height: 220px; }
+.detail-entries { max-height: 400px; overflow-y: auto; }
+.detail-entries table { font-size: 13px; }
+.detail-entries td { cursor: default; }
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  padding: 10px 24px; border-radius: 8px; color: #fff; font-size: 14px;
+  z-index: 999; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
+
+/* Loading spinner */
+.spinner {
+  display: inline-block; width: 20px; height: 20px; border: 2px solid var(--gray-200);
+  border-top-color: var(--blue-500); border-radius: 50%; animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+  .detail-stats { grid-template-columns: repeat(2, 1fr); }
+  .detail-charts { grid-template-columns: 1fr; }
+  .header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 500px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .table-tools { flex-direction: column; width: 100%; }
+  .search-input { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h1>管理后台</h1>
+    <p>六年之约 · 用户数据面板</p>
+    <input type="password" id="passwordInput" placeholder="请输入管理密码" autofocus>
+    <button onclick="doLogin()">进入后台</button>
+    <div class="error" id="loginError">密码错误，请重试</div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+  <div class="header">
+    <div class="header-left">
+      <h1>管理后台</h1>
+      <span id="lastRefresh">等待加载...</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-outline" onclick="refreshData()">刷新数据</button>
+      <button class="btn btn-outline" onclick="showChangePassword()">修改密码</button>
+      <button class="btn btn-danger" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon blue">👥</div>
+      <div><div class="stat-value" id="statUsers">-</div><div class="stat-label">总用户数</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">📝</div>
+      <div><div class="stat-value" id="statEntries">-</div><div class="stat-label">总打卡数</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">🔥</div>
+      <div><div class="stat-value" id="statActive">-</div><div class="stat-label">活跃用户 (30天)</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">💰</div>
+      <div><div class="stat-value" id="statSavings">-</div><div class="stat-label">平均存款 (元)</div></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>心情分布 (全部用户)</h3>
+      <div class="chart-wrap"><canvas id="chartMood"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>存款分段分布 (人数)</h3>
+      <div class="chart-wrap"><canvas id="chartSavings"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>锻炼完成率</h3>
+      <div class="chart-wrap"><canvas id="chartExercise"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>学习完成率</h3>
+      <div class="chart-wrap"><canvas id="chartLearn"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-section">
+    <div class="table-header">
+      <h3>用户列表</h3>
+      <div class="table-tools">
+        <input class="search-input" id="searchInput" placeholder="搜索邮箱..." oninput="renderUsersTable()">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="email" onclick="setSort('email')">邮箱 <span class="sort-arrow">⇅</span></th>
+            <th data-sort="createdAt" onclick="setSort('createdAt')">注册日期 <span class="sort-arrow">⇅</span></th>
+            <th data-sort="entryCount" onclick="setSort('entryCount')">打卡次数 <span class="sort-arrow">⇅</span></th>
+            <th data-sort="lastActivity" onclick="setSort('lastActivity')" class="sorted">最近活跃 <span class="sort-arrow">⇅</span></th>
+            <th data-sort="latestSavings" onclick="setSort('latestSavings')">当前存款 <span class="sort-arrow">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody id="usersTbody"></tbody>
+      </table>
+    </div>
+    <div id="userDetail" class="user-detail"></div>
+  </div>
+</div>
+
+<!-- Password Change Modal -->
+<div class="login-overlay" id="pwOverlay" style="display:none;">
+  <div class="login-card">
+    <h1>修改密码</h1>
+    <p>设置新的管理密码</p>
+    <input type="password" id="newPasswordInput" placeholder="新密码 (至少6位)">
+    <button onclick="doChangePassword()">保存新密码</button>
+    <button class="btn btn-outline" style="margin-top:8px;" onclick="document.getElementById('pwOverlay').style.display='none'">取消</button>
+    <div class="error" id="pwError" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== State ==========
+const API_BASE = window.location.hostname.includes('netlify.app')
+  ? '/.netlify/functions'
+  : 'https://sedona-jf.netlify.app/.netlify/functions';
+const ADMIN_URL = `${API_BASE}/admin`;
+
+let overviewData = null;
+let userDetailCache = {};
+let expandedUserId = null;
+let sortCol = 'lastActivity';
+let sortDir = 'desc';
+let chartInstances = {};
+
+// ========== Auth ==========
+const pwInput = document.getElementById('passwordInput');
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function getPassword() { return sessionStorage.getItem('admin-password'); }
+
+async function doLogin() {
+  const pw = pwInput.value.trim();
+  if (!pw) return;
+  const res = await adminAPI('overview', {}, pw);
+  if (res.error) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  sessionStorage.setItem('admin-password', pw);
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('dashboard').classList.add('active');
+  overviewData = res;
+  renderAll();
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin-password');
+  overviewData = null;
+  userDetailCache = {};
+  expandedUserId = null;
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('loginOverlay').style.display = '';
+  pwInput.value = '';
+  pwInput.focus();
+}
+
+function showChangePassword() {
+  document.getElementById('pwOverlay').style.display = '';
+  document.getElementById('newPasswordInput').focus();
+}
+
+async function doChangePassword() {
+  const newPw = document.getElementById('newPasswordInput').value.trim();
+  if (newPw.length < 6) {
+    document.getElementById('pwError').textContent = '密码至少6位';
+    document.getElementById('pwError').style.display = 'block';
+    return;
+  }
+  const res = await fetch(ADMIN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ adminPassword: getPassword(), action: 'change_password', newPassword: newPw })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    sessionStorage.setItem('admin-password', newPw);
+    document.getElementById('pwOverlay').style.display = 'none';
+    document.getElementById('newPasswordInput').value = '';
+    showToast('密码已更新', 'success');
+  } else {
+    document.getElementById('pwError').textContent = data.error || '修改失败';
+    document.getElementById('pwError').style.display = 'block';
+  }
+}
+
+// ========== API ==========
+async function adminAPI(action, extra = {}, passwordOverride) {
+  const pw = passwordOverride || getPassword();
+  try {
+    const res = await fetch(ADMIN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPassword: pw, action, ...extra })
+    });
+    if (res.status === 401) { doLogout(); return { error: '密码错误' }; }
+    return res.json();
+  } catch (e) {
+    showToast('网络错误: ' + e.message, 'error');
+    return { error: e.message };
+  }
+}
+
+// ========== Render ==========
+function renderAll() {
+  if (!overviewData) return;
+  renderStatsCards(overviewData.overview);
+  renderCharts(overviewData.overview);
+  renderUsersTable();
+  document.getElementById('lastRefresh').textContent = '最后刷新: ' + new Date().toLocaleTimeString('zh-CN');
+}
+
+function renderStatsCards(o) {
+  document.getElementById('statUsers').textContent = o.totalUsers || 0;
+  document.getElementById('statEntries').textContent = o.totalEntries || 0;
+  document.getElementById('statActive').textContent = o.activeUsers || 0;
+  const avg = o.savingsStats ? o.savingsStats.average : 0;
+  document.getElementById('statSavings').textContent = '¥' + avg.toLocaleString();
+}
+
+function destroyChart(key) {
+  if (chartInstances[key]) { chartInstances[key].destroy(); delete chartInstances[key]; }
+}
+
+function renderCharts(o) {
+  // Mood doughnut
+  destroyChart('mood');
+  const moodCtx = document.getElementById('chartMood').getContext('2d');
+  const moodLabels = { happy: '开心', okay: '一般', sad: '难过', anxious: '焦虑', angry: '愤怒' };
+  const moodColors = { happy: '#22c55e', okay: '#86efac', sad: '#93c5fd', anxious: '#fcd34d', angry: '#ef4444' };
+  const moodDist = o.moodDistribution || {};
+  const moodEntries = Object.entries(moodDist).sort((a, b) => b[1] - a[1]);
+  chartInstances.mood = new Chart(moodCtx, {
+    type: 'doughnut',
+    data: {
+      labels: moodEntries.map(([k]) => moodLabels[k] || k),
+      datasets: [{ data: moodEntries.map(([,v]) => v), backgroundColor: moodEntries.map(([k]) => moodColors[k] || '#cbd5e1'), borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { padding: 16, font: { size: 13 } } } } }
+  });
+
+  // Savings distribution (buckets)
+  destroyChart('savings');
+  const savingsCtx = document.getElementById('chartSavings').getContext('2d');
+  const users = overviewData.users || [];
+  const buckets = { '0元': 0, '1-1万': 0, '1-5万': 0, '5-10万': 0, '10-20万': 0, '20万+': 0 };
+  for (const u of users) {
+    const s = u.latestSavings || 0;
+    if (s === 0) buckets['0元']++;
+    else if (s <= 10000) buckets['1-1万']++;
+    else if (s <= 50000) buckets['1-5万']++;
+    else if (s <= 100000) buckets['5-10万']++;
+    else if (s <= 200000) buckets['10-20万']++;
+    else buckets['20万+']++;
+  }
+  chartInstances.savings = new Chart(savingsCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(buckets),
+      datasets: [{ label: '人数', data: Object.values(buckets), backgroundColor: '#3b82f6', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { ticks: { stepSize: 1 }, grid: { display: false } }, y: { grid: { display: false } } }
+    }
+  });
+
+  // Exercise rate
+  destroyChart('exercise');
+  const exCtx = document.getElementById('chartExercise').getContext('2d');
+  const exRate = o.exerciseRate || 0;
+  chartInstances.exercise = new Chart(exCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['已完成', '未完成'],
+      datasets: [{ data: [exRate, 100 - exRate], backgroundColor: ['#10b981', '#e2e8f0'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16 } },
+        tooltip: { callbacks: { label: ctx => ctx.parsed + '%' } }
+      }
+    }
+  });
+
+  // Learning rate
+  destroyChart('learn');
+  const lnCtx = document.getElementById('chartLearn').getContext('2d');
+  const lnRate = o.learningRate || 0;
+  chartInstances.learn = new Chart(lnCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['已完成', '未完成'],
+      datasets: [{ data: [lnRate, 100 - lnRate], backgroundColor: ['#8b5cf6', '#e2e8f0'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16 } },
+        tooltip: { callbacks: { label: ctx => ctx.parsed + '%' } }
+      }
+    }
+  });
+}
+
+// ========== Users Table ==========
+function setSort(col) {
+  if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+  else { sortCol = col; sortDir = 'desc'; }
+  // Update header classes
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.sort === sortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = th.dataset.sort === sortCol ? (sortDir === 'asc' ? '↑' : '↓') : '⇅';
+  });
+  renderUsersTable();
+}
+
+function renderUsersTable() {
+  if (!overviewData) return;
+  let users = [...(overviewData.users || [])];
+
+  // Search filter
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  if (query) users = users.filter(u => u.email.toLowerCase().includes(query));
+
+  // Sort
+  users.sort((a, b) => {
+    let va = a[sortCol], vb = b[sortCol];
+    if (sortCol === 'lastActivity') {
+      if (!va) return 1; if (!vb) return -1;
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    if (sortCol === 'createdAt') {
+      va = va || ''; vb = vb || '';
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    va = va || 0; vb = vb || 0;
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+
+  const tbody = document.getElementById('usersTbody');
+  if (users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">暂无用户数据</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = users.map(u => {
+    const lastAct = u.lastActivity || '从未打卡';
+    const createdAt = u.createdAt ? u.createdAt.slice(0, 10) : '未知';
+    return `<tr id="row-${u.userId}" onclick="toggleUserDetail('${u.email}', '${u.userId}')" class="${expandedUserId === u.userId ? 'expanded' : ''}">
+      <td><strong>${he(u.email)}</strong></td>
+      <td>${he(createdAt)}</td>
+      <td>${u.entryCount || 0}</td>
+      <td>${he(lastAct)}</td>
+      <td>¥${(u.latestSavings || 0).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+function he(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ========== User Detail ==========
+async function toggleUserDetail(email, userId) {
+  const panel = document.getElementById('userDetail');
+  if (expandedUserId === userId) {
+    panel.classList.remove('active');
+    expandedUserId = null;
+    panel.innerHTML = '';
+    renderUsersTable();
+    return;
+  }
+  expandedUserId = userId;
+  renderUsersTable();
+
+  panel.innerHTML = '<div style="padding:20px;text-align:center;"><span class="spinner"></span></div>';
+  panel.classList.add('active');
+
+  let data = userDetailCache[userId];
+  if (!data) {
+    data = await adminAPI('user', { email });
+    if (!data.error) userDetailCache[userId] = data;
+  }
+
+  if (data.error) {
+    panel.innerHTML = `<div class="empty-state">${he(data.error)}</div>`;
+    return;
+  }
+
+  renderUserDetail(data, panel);
+}
+
+function renderUserDetail(data, panel) {
+  const moodLabels = { happy: '开心', okay: '一般', sad: '难过', anxious: '焦虑', angry: '愤怒' };
+  const moodColors = { happy: '#22c55e', okay: '#86efac', sad: '#93c5fd', anxious: '#fcd34d', angry: '#ef4444' };
+  const moodDist = data.stats.moodDistribution || {};
+  const moodEntries = Object.entries(moodDist).sort((a, b) => b[1] - a[1]);
+  const savingsProg = data.stats.savingsProgress || [];
+  const monthly = data.stats.monthlyActivity || {};
+  const monthKeys = Object.keys(monthly).sort();
+  const entries = data.entries || [];
+
+  panel.innerHTML = `
+    <div class="detail-stats">
+      <div class="detail-stat"><div class="val">${data.stats.totalEntries}</div><div class="lbl">总打卡</div></div>
+      <div class="detail-stat"><div class="val">${data.stats.currentStreak}</div><div class="lbl">连续打卡</div></div>
+      <div class="detail-stat"><div class="val">${data.stats.bestStreak}</div><div class="lbl">最长连续</div></div>
+      <div class="detail-stat"><div class="val">${savingsProg.length > 0 ? '¥' + (savingsProg[savingsProg.length - 1].amount || 0).toLocaleString() : '-'}</div><div class="lbl">当前存款</div></div>
+    </div>
+    <div class="detail-charts">
+      <div class="detail-chart">
+        <h4>存款进度</h4>
+        <div class="cw"><canvas id="dcSavings"></canvas></div>
+      </div>
+      <div class="detail-chart">
+        <h4>心情分布</h4>
+        <div class="cw"><canvas id="dcMood"></canvas></div>
+      </div>
+      <div class="detail-chart">
+        <h4>月度活跃</h4>
+        <div class="cw"><canvas id="dcMonthly"></canvas></div>
+      </div>
+    </div>
+    <div class="detail-entries">
+      <h4 style="margin-bottom:8px;font-size:14px;color:var(--gray-600);">最近打卡记录</h4>
+      ${entries.length === 0 ? '<div class="empty-state">暂无打卡记录</div>' : `
+        <table>
+          <thead><tr><th>日期</th><th>心情</th><th>存款</th><th>锻炼</th><th>学习</th><th>开心时刻</th></tr></thead>
+          <tbody>
+            ${entries.slice().reverse().map(e => `
+              <tr>
+                <td>${he(e.date)}</td>
+                <td>${moodLabels[e.mood] || e.mood || '-'}</td>
+                <td>¥${(e.savings || 0).toLocaleString()}</td>
+                <td>${e.exercised ? '✅' : '❌'}</td>
+                <td>${e.learned ? '✅' : '❌'}</td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${he(e.happy || '-')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
+    </div>
+  `;
+
+  // Render detail charts after DOM insertion
+  requestAnimationFrame(() => {
+    // Savings line chart
+    const sCtx = document.getElementById('dcSavings')?.getContext('2d');
+    if (sCtx && savingsProg.length > 0) {
+      chartInstances.dcSavings = new Chart(sCtx, {
+        type: 'line',
+        data: {
+          labels: savingsProg.map(p => p.date.slice(2)),
+          datasets: [{ label: '存款', data: savingsProg.map(p => p.amount), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3, pointRadius: 2 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { maxTicksLimit: 10 }, grid: { display: false } }, y: { ticks: { callback: v => v >= 10000 ? (v/10000)+'万' : v }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+    }
+
+    // Mood doughnut
+    const mCtx = document.getElementById('dcMood')?.getContext('2d');
+    if (mCtx) {
+      chartInstances.dcMood = new Chart(mCtx, {
+        type: 'doughnut',
+        data: {
+          labels: moodEntries.map(([k]) => moodLabels[k] || k),
+          datasets: [{ data: moodEntries.map(([,v]) => v), backgroundColor: moodEntries.map(([k]) => moodColors[k] || '#cbd5e1'), borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+      });
+    }
+
+    // Monthly bar
+    const moCtx = document.getElementById('dcMonthly')?.getContext('2d');
+    if (moCtx) {
+      chartInstances.dcMonthly = new Chart(moCtx, {
+        type: 'bar',
+        data: {
+          labels: monthKeys,
+          datasets: [{ label: '打卡数', data: monthKeys.map(k => monthly[k]), backgroundColor: '#8b5cf6', borderRadius: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { maxTicksLimit: 12 }, grid: { display: false } }, y: { ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } } }
+        }
+      });
+    }
+  });
+}
+
+// ========== Refresh ==========
+async function refreshData() {
+  // Cleanup detail chart instances
+  ['dcSavings', 'dcMood', 'dcMonthly'].forEach(k => { if (chartInstances[k]) { chartInstances[k].destroy(); delete chartInstances[k]; } });
+  expandedUserId = null;
+  document.getElementById('userDetail').classList.remove('active');
+  document.getElementById('userDetail').innerHTML = '';
+  userDetailCache = {};
+
+  const data = await adminAPI('overview');
+  if (!data.error) {
+    overviewData = data;
+    renderAll();
+    showToast('数据已刷新', 'success');
+  }
+}
+
+// ========== Toast ==========
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ========== Init ==========
+(function init() {
+  const pw = getPassword();
+  if (pw) {
+    document.getElementById('passwordInput').value = pw;
+    doLogin();
+  }
+})();
+</script>
+</body>
+</html>
