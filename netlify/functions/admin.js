@@ -2,7 +2,7 @@ const { blobGet, blobSet } = require('./lib/storage');
 
 const SITE_ID = '8a610647-ecc2-4678-9ef8-45927596772c';
 const AUTH_TOKEN = 'nfc_kGRduNRdugW7gPBE6Cr8j6CQzzyEANZs2981';
-const DEFAULT_PASSWORD = 'admin123';
+const DEFAULT_PASSWORD = '060515';
 
 async function getAdminPassword() {
   try {
